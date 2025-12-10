@@ -64,15 +64,11 @@ Fields: id, billId, amountPaid, paymentDate, paymentMethod
 
 Relationships:
 
-Payment ↔ Bill: ManyToOne (A payment is made towards a specific bill)
-
 8. InventoryItem
 
 Fields: id, name, quantity, price, expiryDate
 
 Relationships:
-
-InventoryItem ↔ Prescription: ManyToMany (Each prescription can contain multiple inventory items, and each inventory item can be used in multiple prescriptions)
 
 9. User
 
