@@ -48,19 +48,13 @@ Fields: id, medicalRecordId, medicineName, dosage, duration, instructions
 
 Relationships:
 
-Prescription ↔ MedicalRecord: ManyToOne (A prescription belongs to one medical record)
-
 Prescription ↔ InventoryItem: ManyToMany (A prescription can contain multiple inventory items and each item can appear in multiple prescriptions)
-
-Prescription ↔ Appointment: ManyToOne (A prescription is generated from an appointment, so this relationship is optional but can be included)
 
 6. Bill
 
 Fields: id, patientId, amount, status, dateIssued
 
 Relationships:
-
-Bill ↔ Appointment: OneToOne (Each appointment generates one bill)
 
 Bill ↔ Payment: OneToMany (A bill can have multiple payments made towards it)
 
