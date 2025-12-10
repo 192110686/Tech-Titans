@@ -30,10 +30,6 @@ Fields: id, patientId, doctorId, appointmentDate, status, reason
 
 Relationships:
 
-Appointment ↔ Patient: ManyToOne (An appointment involves one patient)
-
-Appointment ↔ Doctor: ManyToOne (An appointment involves one doctor)
-
 Appointment ↔ Bill: OneToOne (An appointment generates one bill)
 
 Appointment ↔ Prescription: OneToMany (An appointment can generate multiple prescriptions)
@@ -43,10 +39,6 @@ Appointment ↔ Prescription: OneToMany (An appointment can generate multiple pr
 Fields: id, patientId, doctorId, diagnosis, treatment, createdDate
 
 Relationships:
-
-MedicalRecord ↔ Patient: ManyToOne (A medical record belongs to one patient)
-
-MedicalRecord ↔ Doctor: ManyToOne (A medical record is created by one doctor)
 
 MedicalRecord ↔ Prescription: OneToMany (A medical record can have multiple prescriptions)
 
@@ -93,7 +85,3 @@ InventoryItem ↔ Prescription: ManyToMany (Each prescription can contain multip
 Fields: id, username, password, role
 
 Relationships:
-
-User ↔ Patient: OneToOne (Each user can have a patient profile)
-
-User ↔ Doctor: OneToOne (Each user can have a doctor profile)
