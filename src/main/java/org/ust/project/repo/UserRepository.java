@@ -1,5 +1,5 @@
 package org.ust.project.repo;
-import org.apache.catalina.User;
+import org.ust.project.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
