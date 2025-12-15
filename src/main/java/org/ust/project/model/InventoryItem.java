@@ -24,6 +24,6 @@ public class InventoryItem {
     private String supplier;
     private String description;
     
-    @ManyToMany(mappedBy = "inventoryItems")
+    @ManyToMany
     private List<Prescription> prescriptions;
 }
