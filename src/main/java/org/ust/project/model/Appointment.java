@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "appointments")
@@ -20,13 +21,21 @@ public class Appointment {
     private String timeSlot;
     private String status;
 
-    // Relationship: Many appointments can belong to One Patient
+    // Relationship: Many appointments belong to one patient
     @ManyToOne
     @JoinColumn(name = "patient_id")
     private Patient patient;
 
-    // Relationship: Many appointments can belong to One Doctor
+    // Relationship: Many appointments belong to one doctor
     @ManyToOne
     @JoinColumn(name = "doctor_id")
     private Doctor doctor;
+
+    // Relationship: One appointment can have one bill
+    @OneToOne(mappedBy = "appointment")
+    private Bill bill;
+
+    // Relationship: One appointment can have many prescriptions
+    @OneToMany(mappedBy = "appointment")
+    private List<Prescription> prescriptions;
 }

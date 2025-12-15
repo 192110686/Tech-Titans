@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "prescriptions")
@@ -21,4 +22,23 @@ public class Prescription {
     private Double price;
     private LocalDate startDate;
     private LocalDate endDate;
+
+    // Relationship: Many prescriptions belong to one appointment
+    @ManyToOne
+    @JoinColumn(name = "appointment_id")
+    private Appointment appointment;
+
+    // Relationship: Many prescriptions belong to one medical record
+    @ManyToOne
+    @JoinColumn(name = "medical_record_id")
+    private MedicalRecord medicalRecord;
+
+    // Relationship: Many prescriptions can involve many inventory items
+    @ManyToMany
+    @JoinTable(
+        name = "prescription_inventory",
+        joinColumns = @JoinColumn(name = "prescription_id"),
+        inverseJoinColumns = @JoinColumn(name = "inventory_item_id")
+    )
+    private List<InventoryItem> inventoryItems;
 }

@@ -1,4 +1,6 @@
 package org.ust.project.model;
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,9 +22,18 @@ public class Doctor {
     private String specialization;
     private Long phoneNumber;
     private String email;
-    
-    // Kept as Long because 'Department' is not an entity in your list
-    private Long departmentId; 
-    
+    private Long departmentId;  // Assuming department isn't an entity
     private String licenseNumber;
+
+    // Relationship: One doctor can have many appointments
+    @OneToMany(mappedBy = "doctor")
+    private List<Appointment> appointments;
+
+    // Relationship: One doctor can have many medical records
+    @OneToMany(mappedBy = "doctor")
+    private List<MedicalRecord> medicalRecords;
+
+    // Relationship: One doctor has one user account
+    @OneToOne(mappedBy = "doctor")
+    private User user;
 }

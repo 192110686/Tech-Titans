@@ -20,4 +20,14 @@ public class User {
     private String password;
     private String role;
     private LocalDate createdAt;
+
+    // Relationship: One user is linked to one patient
+    @OneToOne
+    @JoinColumn(name = "patient_id")
+    private Patient patient;
+
+    // Relationship: One user is linked to one doctor
+    @OneToOne
+    @JoinColumn(name = "doctor_id")
+    private Doctor doctor;
 }

@@ -20,7 +20,8 @@ public class Payment {
     private Double amountPaid;
     private String paymentMethod;
 
-    @OneToOne // Assuming one payment pays off one bill. Could be @ManyToOne if partial payments exist.
+    // Relationship: One payment is linked to one bill
+    @OneToOne
     @JoinColumn(name = "bill_id")
     private Bill bill;
 }
