@@ -20,6 +20,7 @@ public class Prescription {
     private String medicationName;
     private Double dosageMg;
     private Double price;
+    private Double frequency;
     private LocalDate startDate;
     private LocalDate endDate;
 
