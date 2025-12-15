@@ -35,7 +35,7 @@ public class Appointment {
     private Doctor doctor;
 
     // Relationship: One appointment can have one bill
-    @OneToOne(mappedBy = "appointment")
+    @OneToOne
     private Bill bill;
 
     // Relationship: One appointment can have many prescriptions
