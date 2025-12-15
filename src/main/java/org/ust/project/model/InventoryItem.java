@@ -1,4 +1,6 @@
 package org.ust.project.model;
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,4 +23,7 @@ public class InventoryItem {
     private Double quantity;
     private String supplier;
     private String description;
+    
+    @ManyToMany(mappedBy = "inventoryItems")
+    private List<Prescription> prescriptions;
 }
