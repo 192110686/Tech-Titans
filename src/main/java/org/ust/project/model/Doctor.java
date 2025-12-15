@@ -20,10 +20,10 @@ public class Doctor {
     private String firstName;
     private String lastName;
     private String specialization;
-    private Long phoneNumber;
+    private Long contactNumber;
     private String email;
-    private Long departmentId;  // Assuming department isn't an entity
     private String licenseNumber;
+    private String availabilitySchedule;
 
     // Relationship: One doctor can have many appointments
     @OneToMany(mappedBy = "doctor")
@@ -34,6 +34,6 @@ public class Doctor {
     private List<MedicalRecord> medicalRecords;
 
     // Relationship: One doctor has one user account
-    @OneToOne(mappedBy = "doctor")
+    @OneToOne
     private User user;
 }
