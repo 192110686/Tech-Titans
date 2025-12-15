@@ -24,10 +24,9 @@ public class Bill {
 
     // Relationship: One bill can be associated with one appointment
     @OneToOne
-    @JoinColumn(name = "appointment_id")
     private Appointment appointment;
 
     // Relationship: One bill can have many payments
-    @OneToMany(mappedBy = "bill")
-    private List<Payment> payments;
+    @OneToOne
+    private Payment payment;
 }
