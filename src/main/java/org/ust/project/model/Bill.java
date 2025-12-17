@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
-import java.util.List;
+
 
 @Entity
 @Table(name = "bills")
@@ -29,4 +29,7 @@ public class Bill {
     // Relationship: One bill can have many payments
     @OneToOne
     private Payment payment;
+    
+    @ManyToOne
+    private Patient patient;
 }

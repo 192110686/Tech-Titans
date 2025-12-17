@@ -20,7 +20,7 @@ public class UserService {
 
     public User createUser(User user) {
         // You can add password hashing logic here later
-        user.setCreatedAt(java.time.LocalDate.now());
+        user.setRegistrationDate(java.time.LocalDate.now());
         return userRepository.save(user);
     }
 
