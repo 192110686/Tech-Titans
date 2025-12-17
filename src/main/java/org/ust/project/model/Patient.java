@@ -1,10 +1,23 @@
 package org.ust.project.model;
-import jakarta.persistence.*;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Table(name = "patients")
@@ -28,18 +41,22 @@ public class Patient {
     private String bloodGroup;
 
     // Relationship: One patient can have many appointments
-    @OneToMany(mappedBy = "patient")
+    @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // To prevent infinite recursion during serialization
     private List<Appointment> appointments;
 
     // Relationship: One patient can have many medical records
-    @OneToMany(mappedBy = "patient")
+    @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // To prevent infinite recursion during serialization
     private List<MedicalRecord> medicalRecords;
 
     // Relationship: One patient can have many bills
-    @OneToMany(mappedBy = "patient")
+    @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // To prevent infinite recursion during serialization
     private List<Bill> bills;
 
     // Relationship: One patient has one user account
-    @OneToOne(mappedBy = "patient")
+    @OneToOne(mappedBy = "patient", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference // To avoid infinite recursion when serializing User
     private User user;
 }

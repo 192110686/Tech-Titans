@@ -1,9 +1,20 @@
 package org.ust.project.model;
-import jakarta.persistence.*;
+
+import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "users") // 'user' is a reserved keyword in SQL, so 'users' is safer
@@ -19,15 +30,17 @@ public class User {
     private String username;
     private String password;
     private String role;
-    private LocalDate RegistrationDate;
+    private LocalDate registrationDate;
 
     // Relationship: One user is linked to one patient
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id")
+    @JsonBackReference // Prevent infinite recursion during serialization
     private Patient patient;
 
     // Relationship: One user is linked to one doctor
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id")
+    @JsonBackReference // Prevent infinite recursion during serialization
     private Doctor doctor;
 }

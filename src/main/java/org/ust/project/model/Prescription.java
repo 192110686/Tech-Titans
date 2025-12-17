@@ -1,10 +1,25 @@
 package org.ust.project.model;
-import jakarta.persistence.*;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDate;
-import java.util.List;
 
 @Entity
 @Table(name = "prescriptions")
@@ -25,21 +40,24 @@ public class Prescription {
     private LocalDate endDate;
 
     // Relationship: Many prescriptions belong to one appointment
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "appointment_id")
+    @JsonBackReference // To avoid infinite recursion during serialization
     private Appointment appointment;
 
     // Relationship: Many prescriptions belong to one medical record
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "medical_record_id")
+    @JsonBackReference // To avoid infinite recursion during serialization
     private MedicalRecord medicalRecord;
 
     // Relationship: Many prescriptions can involve many inventory items
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinTable(
         name = "prescription_inventory",
         joinColumns = @JoinColumn(name = "prescription_id"),
         inverseJoinColumns = @JoinColumn(name = "inventory_item_id")
     )
+    @JsonManagedReference // To avoid infinite recursion during serialization
     private List<InventoryItem> inventoryItems;
 }

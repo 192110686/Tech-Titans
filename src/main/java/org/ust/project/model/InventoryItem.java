@@ -1,7 +1,16 @@
 package org.ust.project.model;
+
 import java.util.List;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,7 +32,9 @@ public class InventoryItem {
     private Double quantity;
     private String supplier;
     private String description;
-    
-    @ManyToMany
+
+    // Relationship: Many InventoryItems can belong to many Prescriptions
+    @ManyToMany(mappedBy = "inventoryItems", fetch = FetchType.LAZY)
+    @JsonManagedReference // To prevent infinite recursion during serialization
     private List<Prescription> prescriptions;
 }
