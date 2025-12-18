@@ -1,5 +1,17 @@
 package org.ust.project.dto;
 
+import lombok.AllArgsConstructor;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class UserResponseDTO {
 
     private Long id;
@@ -8,13 +20,6 @@ public class UserResponseDTO {
 
     private String role;
 
-public UserResponseDTO(){}
-
-    public UserResponseDTO(Long id, String role, String username) {
-        this.id = id;
-        this.role = role;
-        this.username = username;
-    }
 
     public Long getId() {
         return id;
@@ -40,16 +45,7 @@ public UserResponseDTO(){}
         this.role = role;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("UserResponseDTO{");
-        sb.append("id=").append(id);
-        sb.append(", username=").append(username);
-        sb.append(", role=").append(role);
-        sb.append('}');
-        return sb.toString();
-    }
+
 
 
 

@@ -1,6 +1,16 @@
 package org.ust.project.dto;
+import lombok.Getter;
+import lombok.Setter;
 import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class PrescriptionRequestDTO {
 
     private String medicationName;
@@ -19,7 +29,6 @@ public class PrescriptionRequestDTO {
 
     private Long medicalRecordId;  // Linking to the MedicalRecord
 
-    public PrescriptionRequestDTO(){}
 
     public PrescriptionRequestDTO(Long appointmentId, Double dosageMg, LocalDate endDate, Double frequency, Long medicalRecordId, String medicationName, Double price, LocalDate startDate) {
         this.appointmentId = appointmentId;

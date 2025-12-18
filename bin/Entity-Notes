@@ -1,0 +1,77 @@
+1. Patient
+
+Fields: id, firstName, lastName, dateOfBirth, gender, contactNumber, email, address, registrationDate
+
+Relationships:
+
+Patient ↔ Appointment: OneToMany (A patient can have many appointments)
+
+Patient ↔ MedicalRecord: OneToMany (A patient can have many medical records)
+
+Patient ↔ Bill: OneToMany (A patient can have many bills, but this can be derived from appointments)
+
+Patient ↔ User: OneToOne (A user profile for login/authentication)
+
+2. Doctor
+
+Fields: id, firstName, lastName, specialization, contactNumber, email, availabilitySchedule
+
+Relationships:
+
+Doctor ↔ Appointment: OneToMany (A doctor can have many appointments)
+
+Doctor ↔ MedicalRecord: OneToMany (A doctor can have many medical records)
+
+Doctor ↔ User: OneToOne (A user profile for login/authentication)
+
+3. Appointment
+
+Fields: id, patientId, doctorId, appointmentDate, status, reason
+
+Relationships:
+
+Appointment ↔ Bill: OneToOne (An appointment generates one bill)
+
+Appointment ↔ Prescription: OneToMany (An appointment can generate multiple prescriptions)
+
+4. MedicalRecord
+
+Fields: id, patientId, doctorId, diagnosis, treatment, createdDate
+
+Relationships:
+
+MedicalRecord ↔ Prescription: OneToMany (A medical record can have multiple prescriptions)
+
+5. Prescription
+
+Fields: id, medicalRecordId, medicineName, dosage, duration, instructions
+
+Relationships:
+
+Prescription ↔ InventoryItem: ManyToMany (A prescription can contain multiple inventory items and each item can appear in multiple prescriptions)
+
+6. Bill
+
+Fields: id, patientId, amount, status, dateIssued
+
+Relationships:
+
+Bill ↔ Payment: OneToMany (A bill can have multiple payments made towards it)
+
+7. Payment
+
+Fields: id, billId, amountPaid, paymentDate, paymentMethod
+
+Relationships:
+
+8. InventoryItem
+
+Fields: id, name, quantity, price, expiryDate
+
+Relationships:
+
+9. User
+
+Fields: id, username, password, role
+
+Relationships:

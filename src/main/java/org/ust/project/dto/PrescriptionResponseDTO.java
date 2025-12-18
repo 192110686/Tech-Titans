@@ -1,5 +1,16 @@
 package org.ust.project.dto;
+import lombok.Getter;
+import lombok.Setter;
+
+
 import java.time.LocalDate;
+
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 
 public class PrescriptionResponseDTO {
 
@@ -21,7 +32,6 @@ public class PrescriptionResponseDTO {
 
     private MedicalRecordResponseDTO medicalRecord; 
     
-    public PrescriptionResponseDTO(){}
 
     public PrescriptionResponseDTO(AppointmentResponseDTO appointment, Double dosageMg, LocalDate endDate, Double frequency, Long id, MedicalRecordResponseDTO medicalRecord, String medicationName, Double price, LocalDate startDate) {
         this.appointment = appointment;
