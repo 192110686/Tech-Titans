@@ -1,7 +1,5 @@
 package org.ust.project.dto;
 
-import java.time.LocalDate;
-
 import lombok.AllArgsConstructor;
 
 import lombok.Getter;

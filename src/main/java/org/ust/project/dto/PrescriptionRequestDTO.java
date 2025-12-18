@@ -1,22 +1,9 @@
 package org.ust.project.dto;
-
-<<<<<<< HEAD
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-
-=======
->>>>>>> 68b99d2cf5e895caf90a504b3cc67ad570396376
 import java.time.LocalDate;
-
-<<<<<<< HEAD
-@Getter
-@Setter
-=======
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 
 @Getter
@@ -24,7 +11,6 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
->>>>>>> 68b99d2cf5e895caf90a504b3cc67ad570396376
 public class PrescriptionRequestDTO {
 
     private String medicationName;
