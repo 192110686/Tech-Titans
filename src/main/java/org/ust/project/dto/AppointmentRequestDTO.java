@@ -25,11 +25,6 @@ public class AppointmentRequestDTO {
 
     private Long patientId;
 
-   
-
- 
-
-  
 
 
 }
