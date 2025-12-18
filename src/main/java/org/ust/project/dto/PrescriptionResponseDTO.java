@@ -1,22 +1,13 @@
 package org.ust.project.dto;
 
-
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.time.LocalDate;
-
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
-
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 
@@ -38,6 +29,96 @@ public class PrescriptionResponseDTO {
 
     private AppointmentResponseDTO appointment;  // Nested DTO for appointment details
 
-    private MedicalRecordResponseDTO medicalRecord;  // Nested DTO for medical record details
+    private MedicalRecordResponseDTO medicalRecord; 
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getMedicationName() {
+        return medicationName;
+    }
+
+    public void setMedicationName(String medicationName) {
+        this.medicationName = medicationName;
+    }
+
+    public Double getDosageMg() {
+        return dosageMg;
+    }
+
+    public void setDosageMg(Double dosageMg) {
+        this.dosageMg = dosageMg;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
+    public Double getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(Double frequency) {
+        this.frequency = frequency;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public AppointmentResponseDTO getAppointment() {
+        return appointment;
+    }
+
+    public void setAppointment(AppointmentResponseDTO appointment) {
+        this.appointment = appointment;
+    }
+
+    public MedicalRecordResponseDTO getMedicalRecord() {
+        return medicalRecord;
+    }
+
+    public void setMedicalRecord(MedicalRecordResponseDTO medicalRecord) {
+        this.medicalRecord = medicalRecord;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("PrescriptionResponseDTO{");
+        sb.append("id=").append(id);
+        sb.append(", medicationName=").append(medicationName);
+        sb.append(", dosageMg=").append(dosageMg);
+        sb.append(", price=").append(price);
+        sb.append(", frequency=").append(frequency);
+        sb.append(", startDate=").append(startDate);
+        sb.append(", endDate=").append(endDate);
+        sb.append(", appointment=").append(appointment);
+        sb.append(", medicalRecord=").append(medicalRecord);
+        sb.append('}');
+        return sb.toString();
+    }
+    
 
 }
