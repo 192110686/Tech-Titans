@@ -31,4 +31,6 @@ public class PrescriptionRequestDTO {
 
     private Long medicalRecordId;  // Linking to the MedicalRecord
 
+    
+
 }

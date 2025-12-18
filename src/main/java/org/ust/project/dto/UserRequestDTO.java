@@ -7,21 +7,17 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@Setter
 public class UserRequestDTO {
 
     private String username;
 
     private String password;
-
     private String role;
 
-    
-
-
-    
+  
 
 }
