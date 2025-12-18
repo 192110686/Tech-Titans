@@ -1,10 +1,18 @@
 package org.ust.project.dto;
 
-import lombok.Data;
 import java.time.LocalDate;
-import java.util.List;
 
-@Data
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class PrescriptionResponseDTO {
 
     private Long id;
