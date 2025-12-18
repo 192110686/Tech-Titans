@@ -25,5 +25,4 @@ public class PrescriptionResponseDTO {
 
     private MedicalRecordResponseDTO medicalRecord;  // Nested DTO for medical record details
 
-    private List<InventoryItemResponseDTO> inventoryItems;  // Nested DTO for inventory items used in the prescription
 }
