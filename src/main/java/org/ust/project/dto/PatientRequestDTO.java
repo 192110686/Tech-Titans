@@ -19,4 +19,6 @@ public class PatientRequestDTO {
     private String email;
 
     private String bloodGroup;
+    
+    private String address;
 }

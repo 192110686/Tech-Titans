@@ -23,7 +23,7 @@ public class Bill {
     private LocalDate dueDate;
 
     // Relationship: One bill can be associated with one appointment
-    @OneToOne(mappedBy = "bill", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "bill", fetch = FetchType.LAZY)
     private Appointment appointment;
 
     // Relationship: One bill can have one payment

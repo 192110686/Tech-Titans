@@ -13,9 +13,4 @@ public class InventoryItemResponseDTO {
 
     private Double unitPrice;
 
-    private Double quantity;
-
-    private String supplier;
-
-    private String description;
 }

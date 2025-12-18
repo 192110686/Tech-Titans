@@ -15,7 +15,4 @@ public class DoctorResponseDTO {
 
     private String availabilitySchedule;
 
-    private Long contactNumber;
-
-    private String email;
 }

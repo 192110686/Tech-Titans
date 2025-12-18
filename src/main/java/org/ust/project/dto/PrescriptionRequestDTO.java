@@ -23,5 +23,4 @@ public class PrescriptionRequestDTO {
 
     private Long medicalRecordId;  // Linking to the MedicalRecord
 
-    private List<Long> inventoryItemIds;  // List of Inventory Item IDs to associate with the Prescription
 }

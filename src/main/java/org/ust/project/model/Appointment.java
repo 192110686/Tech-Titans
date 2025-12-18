@@ -25,8 +25,6 @@ public class Appointment {
     private String timeSlot;
     private String status;
     private String reasonForVisit;
-    private Long doctorId;
-    private Long patientId;
 
     // Relationship: Many appointments belong to one patient
     @ManyToOne(fetch = FetchType.LAZY)
