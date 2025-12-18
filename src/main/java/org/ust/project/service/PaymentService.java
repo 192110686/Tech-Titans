@@ -1,14 +1,18 @@
 package org.ust.project.service;
 
-import org.ust.project.model.Bill;
+import org.ust.project.dto.PaymentRequestDTO;
+import org.ust.project.dto.PaymentResponseDTO;
+import org.ust.project.dto.BillResponseDTO;
 import org.ust.project.model.Payment;
-import org.ust.project.repo.BillRepository;
+import org.ust.project.model.Bill;
 import org.ust.project.repo.PaymentRepository;
+import org.ust.project.repo.BillRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentService {
@@ -19,30 +23,118 @@ public class PaymentService {
     @Autowired
     private BillRepository billRepository;
 
-    public List<Payment> getAllPayments() {
-        return paymentRepository.findAll();
+    // Create a new payment
+    public PaymentResponseDTO createPayment(PaymentRequestDTO paymentRequestDTO) {
+        Payment payment = new Payment();
+        payment.setPaymentDate(paymentRequestDTO.getPaymentDate());
+        payment.setAmountPaid(paymentRequestDTO.getAmountPaid());
+        payment.setPaymentMethod(paymentRequestDTO.getPaymentMethod());
+
+        // Fetch the Bill object using billId from the DTO
+        Optional<Bill> billOptional = billRepository.findById(paymentRequestDTO.getBillId());
+        if (billOptional.isPresent()) {
+            payment.setBill(billOptional.get());
+            payment = paymentRepository.save(payment);
+
+            // Return a response DTO including the Bill details
+            return new PaymentResponseDTO(
+                    payment.getId(),
+                    payment.getPaymentDate(),
+                    payment.getAmountPaid(),
+                    payment.getPaymentMethod(),
+                    new BillResponseDTO(
+                        payment.getBill().getId(),
+                        payment.getBill().getIssueDate(),
+                        payment.getBill().getTotalAmount(),
+                        payment.getBill().getPaymentStatus(),
+                        payment.getBill().getDueDate()
+                    )
+            );
+        }
+        return null; // Or throw an exception if bill not found
     }
 
-    public Optional<Payment> getPaymentById(Long id) {
-        return paymentRepository.findById(id);
+    // Get payment by ID
+    public PaymentResponseDTO getPaymentById(Long id) {
+        Optional<Payment> paymentOptional = paymentRepository.findById(id);
+        if (paymentOptional.isPresent()) {
+            Payment payment = paymentOptional.get();
+            return new PaymentResponseDTO(
+                    payment.getId(),
+                    payment.getPaymentDate(),
+                    payment.getAmountPaid(),
+                    payment.getPaymentMethod(),
+                    new BillResponseDTO(
+                        payment.getBill().getId(),
+                        payment.getBill().getIssueDate(),
+                        payment.getBill().getTotalAmount(),
+                        payment.getBill().getPaymentStatus(),
+                        payment.getBill().getDueDate()
+                    )
+            );
+        }
+        return null; // Or throw an exception if payment not found
     }
 
-    // Link payment to a specific Bill
-    public Payment createPayment(Long billId, Payment payment) {
-        Bill bill = billRepository.findById(billId)
-                .orElseThrow(() -> new RuntimeException("Bill not found with ID: " + billId));
-        
-        payment.setBill(bill);
-        payment.setPaymentDate(java.time.LocalDate.now());
-        
-        // Optional: Auto-update bill status to 'Paid'
-        bill.setPaymentStatus("Paid");
-        billRepository.save(bill);
-
-        return paymentRepository.save(payment);
+    // Get all payments
+    public List<PaymentResponseDTO> getAllPayments() {
+        List<Payment> payments = paymentRepository.findAll();
+        return payments.stream()
+                .map(payment -> new PaymentResponseDTO(
+                        payment.getId(),
+                        payment.getPaymentDate(),
+                        payment.getAmountPaid(),
+                        payment.getPaymentMethod(),
+                        new BillResponseDTO(
+                            payment.getBill().getId(),
+                            payment.getBill().getIssueDate(),
+                            payment.getBill().getTotalAmount(),
+                            payment.getBill().getPaymentStatus(),
+                            payment.getBill().getDueDate()
+                        )
+                ))
+                .collect(Collectors.toList());
     }
 
-    public void deletePayment(Long id) {
-        paymentRepository.deleteById(id);
+    // Update payment details
+    public PaymentResponseDTO updatePayment(Long id, PaymentRequestDTO paymentRequestDTO) {
+        Optional<Payment> paymentOptional = paymentRepository.findById(id);
+        if (paymentOptional.isPresent()) {
+            Payment payment = paymentOptional.get();
+            payment.setPaymentDate(paymentRequestDTO.getPaymentDate());
+            payment.setAmountPaid(paymentRequestDTO.getAmountPaid());
+            payment.setPaymentMethod(paymentRequestDTO.getPaymentMethod());
+
+            // Fetch the Bill object using billId from the DTO
+            Optional<Bill> billOptional = billRepository.findById(paymentRequestDTO.getBillId());
+            if (billOptional.isPresent()) {
+                payment.setBill(billOptional.get());
+                payment = paymentRepository.save(payment);
+
+                return new PaymentResponseDTO(
+                        payment.getId(),
+                        payment.getPaymentDate(),
+                        payment.getAmountPaid(),
+                        payment.getPaymentMethod(),
+                        new BillResponseDTO(
+                            payment.getBill().getId(),
+                            payment.getBill().getIssueDate(),
+                            payment.getBill().getTotalAmount(),
+                            payment.getBill().getPaymentStatus(),
+                            payment.getBill().getDueDate()
+                        )
+                );
+            }
+        }
+        return null; // Or throw an exception if payment not found or bill not found
+    }
+
+    // Delete payment
+    public boolean deletePayment(Long id) {
+        if (paymentRepository.existsById(id)) {
+            paymentRepository.deleteById(id);
+            return true;
+        }
+        return false; // Or throw an exception if payment not found
     }
 }
