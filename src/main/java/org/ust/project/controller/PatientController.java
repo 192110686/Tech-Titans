@@ -1,63 +1,66 @@
 package org.ust.project.controller;
+
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.ust.project.model.Patient;
+import org.ust.project.dto.PatientRequestDTO;
+import org.ust.project.dto.PatientResponseDTO;
 import org.ust.project.service.PatientService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/patients")
-@CrossOrigin("*") // Allows your frontend (React/Angular) to connect easily
 public class PatientController {
 
-    @Autowired
-    private PatientService patientService;
+    private final PatientService patientService;
 
-    // GET: http://localhost:8080/api/patients
-    @GetMapping
-    public List<Patient> getAllPatients() {
-        return patientService.getAllPatients();
+    public PatientController(PatientService patientService) {
+        this.patientService = patientService;
     }
 
-    // GET: http://localhost:8080/api/patients/1
-    @GetMapping("/{id}")
-    public Patient getPatientById(@PathVariable Long id) {
-        return patientService.getPatientById(id).orElse(null);
-    }
-
-    // POST: http://localhost:8080/api/patients
+    /* ================= CREATE ================= */
     @PostMapping
-    public Patient createPatient(@RequestBody Patient patient) {
-        return patientService.savePatient(patient);
+    public ResponseEntity<PatientResponseDTO> createPatient(
+            @RequestBody PatientRequestDTO requestDTO) {
+
+        PatientResponseDTO response =
+                patientService.createPatient(requestDTO);
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // PUT: http://localhost:8080/api/patients/1
+    /* ================= GET ALL ================= */
+    @GetMapping
+    public ResponseEntity<List<PatientResponseDTO>> getAllPatients() {
+
+        return ResponseEntity.ok(patientService.getAllPatients());
+    }
+
+    /* ================= GET BY ID ================= */
+    @GetMapping("/{id}")
+    public ResponseEntity<PatientResponseDTO> getPatientById(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(patientService.getPatientById(id));
+    }
+
+    /* ================= UPDATE ================= */
     @PutMapping("/{id}")
-    public Patient updatePatient(@PathVariable Long id, @RequestBody Patient patientDetails) {
-        // Simple update logic
-        Patient patient = patientService.getPatientById(id).orElse(null);
-        if (patient != null) {
-            patient.setFirstName(patientDetails.getFirstName());
-            patient.setLastName(patientDetails.getLastName());
-            patient.setPhoneNumber(patientDetails.getPhoneNumber());
-            // ... set other fields ...
-            return patientService.savePatient(patient);
-        }
-        return null;
+    public ResponseEntity<PatientResponseDTO> updatePatient(
+            @PathVariable Long id,
+            @RequestBody PatientRequestDTO requestDTO) {
+
+        return ResponseEntity.ok(
+                patientService.updatePatient(id, requestDTO)
+        );
     }
 
-    // DELETE: http://localhost:8080/api/patients/1
+    /* ================= DELETE ================= */
     @DeleteMapping("/{id}")
-    public void deletePatient(@PathVariable Long id) {
+    public ResponseEntity<Void> deletePatient(@PathVariable Long id) {
+
         patientService.deletePatient(id);
+        return ResponseEntity.noContent().build();
     }
 }

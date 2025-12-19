@@ -1,53 +1,73 @@
 package org.ust.project.controller;
 
-import org.ust.project.model.MedicalRecord;
-import org.ust.project.service.MedicalRecordService;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+
+import org.ust.project.dto.MedicalRecordRequestDTO;
+import org.ust.project.dto.MedicalRecordResponseDTO;
+import org.ust.project.service.MedicalRecordService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/medical-records")
-@CrossOrigin("*")
 public class MedicalRecordController {
 
-    @Autowired
-    private MedicalRecordService medicalRecordService;
+    private final MedicalRecordService medicalRecordService;
 
-    @GetMapping
-    public List<MedicalRecord> getAllMedicalRecords() {
-        return medicalRecordService.getAllMedicalRecords();
+    public MedicalRecordController(MedicalRecordService medicalRecordService) {
+        this.medicalRecordService = medicalRecordService;
     }
 
+    /* ================= CREATE ================= */
     @PostMapping
-    public MedicalRecord createMedicalRecord(@RequestBody MedicalRecordRequest request) {
-        MedicalRecord record = new MedicalRecord();
-        record.setDiagnosis(request.getDiagnosis());
-        record.setTreatmentPlan(request.getTreatmentPlan());
-        record.setSymptoms(request.getSymptoms());
-        
-        // Pass IDs to service to handle the relationships
-        return medicalRecordService.createMedicalRecord(
-                request.getPatientId(),
-                request.getDoctorId(),
-                record
-        );
+    public ResponseEntity<MedicalRecordResponseDTO> createMedicalRecord(
+            @RequestBody MedicalRecordRequestDTO requestDTO) {
+
+        MedicalRecordResponseDTO response =
+                medicalRecordService.createMedicalRecord(requestDTO);
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    /* ================= GET ALL ================= */
+    @GetMapping
+    public ResponseEntity<List<MedicalRecordResponseDTO>> getAllMedicalRecords() {
+
+        List<MedicalRecordResponseDTO> records =
+                medicalRecordService.getAllMedicalRecords();
+
+        return ResponseEntity.ok(records);
+    }
+
+    /* ================= GET BY ID ================= */
+    @GetMapping("/{id}")
+    public ResponseEntity<MedicalRecordResponseDTO> getMedicalRecordById(
+            @PathVariable Long id) {
+
+        MedicalRecordResponseDTO record =
+                medicalRecordService.getMedicalRecordById(id);
+
+        return ResponseEntity.ok(record);
+    }
+
+    /* ================= UPDATE ================= */
+    @PutMapping("/{id}")
+    public ResponseEntity<MedicalRecordResponseDTO> updateMedicalRecord(
+            @PathVariable Long id,
+            @RequestBody MedicalRecordRequestDTO requestDTO) {
+
+        MedicalRecordResponseDTO updatedRecord =
+                medicalRecordService.updateMedicalRecord(id, requestDTO);
+
+        return ResponseEntity.ok(updatedRecord);
+    }
+
+    /* ================= DELETE ================= */
     @DeleteMapping("/{id}")
-    public void deleteMedicalRecord(@PathVariable Long id) {
-        medicalRecordService.deleteMedicalRecord(id);
-    }
-}
+    public ResponseEntity<Void> deleteMedicalRecord(@PathVariable Long id) {
 
-// Helper DTO for JSON input
-@Data
-class MedicalRecordRequest {
-    private Long patientId;
-    private Long doctorId;
-    private String diagnosis;
-    private String treatmentPlan;
-    private String symptoms;
+        medicalRecordService.deleteMedicalRecord(id);
+        return ResponseEntity.noContent().build();
+    }
 }
