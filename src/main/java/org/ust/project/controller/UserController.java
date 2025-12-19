@@ -1,36 +1,45 @@
 package org.ust.project.controller;
 
-import org.ust.project.model.User;
-import org.ust.project.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import org.ust.project.dto.UserRequestDTO;
+import org.ust.project.dto.UserResponseDTO;
+import org.ust.project.service.UserService;
+
 @RestController
-@RequestMapping("/api/users")
-@CrossOrigin("*")
+@RequestMapping("/users")
+@CrossOrigin
 public class UserController {
 
     @Autowired
     private UserService userService;
 
-    @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    // CREATE USER
+    @PostMapping
+    public ResponseEntity<UserResponseDTO> create(@RequestBody UserRequestDTO dto) {
+        return ResponseEntity.ok(userService.createUser(dto));
     }
 
-    @PostMapping("/register")
-    public User registerUser(@RequestBody User user) {
-        return userService.createUser(user);
+    // GET USER BY ID
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUser(id));
     }
-    
-    // Simple login check (Returns user if password matches, else null)
-    // NOTE: For a real project, use Spring Security. This is just for basic testing.
-    @PostMapping("/login")
-    public User loginUser(@RequestBody User loginDetails) {
-        return userService.findByUsername(loginDetails.getUsername())
-            .filter(user -> user.getPassword().equals(loginDetails.getPassword()))
-            .orElse(null);
+
+    // GET ALL USERS
+    @GetMapping
+    public ResponseEntity<List<UserResponseDTO>> getAll() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    // DELETE USER
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> delete(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok("User deleted successfully");
     }
 }
