@@ -1,7 +1,7 @@
-package org.ust.project.service;  // Corrected package name
+package org.ust.project.service;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,75 +17,53 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // Create a new user
-    public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
+    // CREATE USER
+    public UserResponseDTO createUser(UserRequestDTO dto) {
+
         User user = new User();
-        user.setUsername(userRequestDTO.getUsername());
-        user.setPassword(userRequestDTO.getPassword());
-        user.setRole(userRequestDTO.getRole());
+        user.setUsername(dto.getUsername());
+        user.setPassword(dto.getPassword()); // no encryption
+        user.setRole(dto.getRole());
+        user.setRegistrationDate(LocalDate.now());
 
-        // Save the user to the database
-        user = userRepository.save(user);
+        // patient & doctor linking left null intentionally
+        user.setPatient(null);
+        user.setDoctor(null);
 
-        return new UserResponseDTO(
-            user.getId(),
-            user.getUsername(),
-            user.getRole()
-        );
+        User saved = userRepository.save(user);
+
+        return convert(saved);
     }
 
-    // Get user by ID
-    public UserResponseDTO getUserById(Long id) {
-        Optional<User> userOptional = userRepository.findById(id);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            return new UserResponseDTO(
-                user.getId(),
-                user.getUsername(),
-                user.getRole()
-            );
-        }
-        return null; // Handle case where user is not found (could throw an exception)
+    // GET BY ID
+    public UserResponseDTO getUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return convert(user);
     }
 
-    // Get all users
+    // GET ALL USERS
     public List<UserResponseDTO> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-            .map(user -> new UserResponseDTO(
+        return userRepository.findAll()
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toList());
+    }
+
+    // DELETE USER
+    public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("User not found");
+        }
+        userRepository.deleteById(id);
+    }
+
+    // MAP TO DTO
+    private UserResponseDTO convert(User user) {
+        return new UserResponseDTO(
                 user.getId(),
                 user.getUsername(),
                 user.getRole()
-            ))
-            .collect(Collectors.toList());
-    }
-
-    // Update user details
-    public UserResponseDTO updateUser(Long id, UserRequestDTO userRequestDTO) {
-        Optional<User> userOptional = userRepository.findById(id);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            user.setUsername(userRequestDTO.getUsername());
-            user.setPassword(userRequestDTO.getPassword());
-            user.setRole(userRequestDTO.getRole());
-
-            user = userRepository.save(user);
-
-            return new UserResponseDTO(
-                user.getId(),
-                user.getUsername(),
-                user.getRole()
-            );
-        }
-        return null; // Handle case where user is not found (could throw an exception)
-    }
-
-    // Delete a user
-    public boolean deleteUser(Long id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-            return true;
-        }
-        return false; // Handle case where user is not found
+        );
     }
 }
