@@ -13,7 +13,6 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-
 public class PrescriptionRequestDTO {
 
     private String medicationName;

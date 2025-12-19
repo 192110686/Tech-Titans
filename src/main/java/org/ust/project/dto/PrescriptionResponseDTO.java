@@ -12,7 +12,6 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-
 public class PrescriptionResponseDTO {
 
     private Long id;
@@ -33,7 +32,6 @@ public class PrescriptionResponseDTO {
 
     private MedicalRecordResponseDTO medicalRecord; 
 
-   
-    
+
 
 }

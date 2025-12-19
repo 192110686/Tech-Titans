@@ -1,12 +1,12 @@
 package org.ust.project.dto;
 
+import java.time.LocalDate;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -24,6 +24,8 @@ public class AppointmentRequestDTO {
     private Long doctorId;
 
     private Long patientId;
+
+
 
 
 }

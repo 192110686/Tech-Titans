@@ -1,45 +1,66 @@
 package org.ust.project.controller;
 
-import org.ust.project.model.Payment;
-import org.ust.project.service.PaymentService;
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+
+import org.ust.project.dto.PaymentRequestDTO;
+import org.ust.project.dto.PaymentResponseDTO;
+import org.ust.project.service.PaymentService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/payments")
-@CrossOrigin("*")
 public class PaymentController {
 
-    @Autowired
-    private PaymentService paymentService;
+    private final PaymentService paymentService;
 
-    @GetMapping
-    public List<Payment> getAllPayments() {
-        return paymentService.getAllPayments();
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
     }
 
+    /* ================= CREATE PAYMENT ================= */
     @PostMapping
-    public Payment createPayment(@RequestBody PaymentRequest request) {
-        Payment payment = new Payment();
-        payment.setAmountPaid(request.getAmountPaid());
-        payment.setPaymentMethod(request.getPaymentMethod());
+    public ResponseEntity<PaymentResponseDTO> createPayment(
+            @RequestBody PaymentRequestDTO requestDTO) {
 
-        return paymentService.createPayment(request.getBillId(), payment);
+        PaymentResponseDTO response =
+                paymentService.createPayment(requestDTO);
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    /* ================= GET ALL PAYMENTS ================= */
+    @GetMapping
+    public ResponseEntity<List<PaymentResponseDTO>> getAllPayments() {
+
+        return ResponseEntity.ok(paymentService.getAllPayments());
+    }
+
+    /* ================= GET PAYMENT BY ID ================= */
+    @GetMapping("/{id}")
+    public ResponseEntity<PaymentResponseDTO> getPaymentById(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(paymentService.getPaymentById(id));
+    }
+
+    /* ================= UPDATE PAYMENT ================= */
+    @PutMapping("/{id}")
+    public ResponseEntity<PaymentResponseDTO> updatePayment(
+            @PathVariable Long id,
+            @RequestBody PaymentRequestDTO requestDTO) {
+
+        return ResponseEntity.ok(
+                paymentService.updatePayment(id, requestDTO)
+        );
+    }
+
+    /* ================= DELETE PAYMENT ================= */
     @DeleteMapping("/{id}")
-    public void deletePayment(@PathVariable Long id) {
-        paymentService.deletePayment(id);
-    }
-}
+    public ResponseEntity<Void> deletePayment(@PathVariable Long id) {
 
-// Helper DTO
-@Data
-class PaymentRequest {
-    private Long billId;
-    private Double amountPaid;
-    private String paymentMethod;
+        paymentService.deletePayment(id);
+        return ResponseEntity.noContent().build();
+    }
 }

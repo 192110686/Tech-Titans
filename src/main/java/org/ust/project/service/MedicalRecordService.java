@@ -1,18 +1,19 @@
-package org.ust.project.service;
+package org.ust.project.service;  // Corrected package name
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+import org.ust.project.dto.DoctorResponseDTO;
 import org.ust.project.dto.MedicalRecordRequestDTO;
 import org.ust.project.dto.MedicalRecordResponseDTO;
 import org.ust.project.dto.PatientResponseDTO;
-import org.ust.project.dto.DoctorResponseDTO;
+import org.ust.project.model.Doctor;
 import org.ust.project.model.MedicalRecord;
 import org.ust.project.model.Patient;
-import org.ust.project.model.Doctor;
-import org.ust.project.repo.*;
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.ust.project.repo.DoctorRepository;
+import org.ust.project.repo.MedicalRecordRepository;
+import org.ust.project.repo.PatientRepository;
 
 @Service
 public class MedicalRecordService {
@@ -21,7 +22,6 @@ public class MedicalRecordService {
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
 
-    @Autowired
     public MedicalRecordService(MedicalRecordRepository medicalRecordRepository,
                                 PatientRepository patientRepository,
                                 DoctorRepository doctorRepository) {
