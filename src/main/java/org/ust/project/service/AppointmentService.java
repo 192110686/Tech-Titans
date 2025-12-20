@@ -10,7 +10,11 @@ import org.ust.project.dto.AppointmentRequestDTO;
 import org.ust.project.dto.AppointmentResponseDTO;
 import org.ust.project.dto.DoctorResponseDTO;
 import org.ust.project.dto.PatientResponseDTO;
+import org.ust.project.exception.AppointmentNotFoundException;
+import org.ust.project.exception.DoctorEntityNotFoundException;
+import org.ust.project.exception.PatientEntityNotFoundException;
 import org.ust.project.model.Appointment;
+import org.ust.project.model.Bill;
 import org.ust.project.model.Doctor;
 import org.ust.project.model.Patient;
 import org.ust.project.repo.AppointmentRepository;
@@ -34,44 +38,55 @@ public class AppointmentService {
         Appointment appointment = new Appointment();
 
         // Fetch the Doctor and Patient from their respective repositories using their IDs
-        Optional<Doctor> doctorOptional = doctorRepository.findById(appointmentRequestDTO.getDoctorId());
-        Optional<Patient> patientOptional = patientRepository.findById(appointmentRequestDTO.getPatientId());
+        Doctor doctor = doctorRepository.findById(appointmentRequestDTO.getDoctorId())
+            .orElseThrow(() -> new DoctorEntityNotFoundException(appointmentRequestDTO.getDoctorId()));
+        
+        Patient patient = patientRepository.findById(appointmentRequestDTO.getPatientId())
+            .orElseThrow(() -> new PatientEntityNotFoundException(appointmentRequestDTO.getPatientId()));
 
-        if (doctorOptional.isPresent() && patientOptional.isPresent()) {
-            Doctor doctor = doctorOptional.get();
-            Patient patient = patientOptional.get();
+        // Set the doctor, patient, and appointment date
+        appointment.setDoctor(doctor);
+        appointment.setPatient(patient);
+        appointment.setAppointmentDate(appointmentRequestDTO.getAppointmentDate());
 
-            // Set the doctor, patient, and appointment date
-            appointment.setDoctor(doctor);
-            appointment.setPatient(patient);
-            appointment.setAppointmentDate(appointmentRequestDTO.getAppointmentDate());
+        // Set additional fields
+        appointment.setTimeSlot(appointmentRequestDTO.getTimeSlot());
+        appointment.setReasonForVisit(appointmentRequestDTO.getReasonForVisit());
+        appointment.setStatus(appointmentRequestDTO.getStatus());
 
-            // Save the appointment and return the response DTO with mapped Doctor and Patient DTOs
-            appointment = appointmentRepository.save(appointment);
-            return new AppointmentResponseDTO(
-                appointment.getId(),
-                appointment.getAppointmentDate(),
-                new DoctorResponseDTO(
-                    doctor.getId(),
-                    doctor.getFirstName(),
-                    doctor.getLastName(),
-                    doctor.getSpecialization(),
-                    doctor.getAvailabilitySchedule()
-                ), // Doctor mapped to DoctorResponseDTO
-                new PatientResponseDTO(
-                    patient.getId(),
-                    patient.getFirstName(),
-                    patient.getLastName(),
-                    patient.getDateOfBirth(),
-                    patient.getGender(),
-                    patient.getPhoneNumber(),
-                    patient.getEmail(),
-                    patient.getBloodGroup()
-                ) // Patient mapped to PatientResponseDTO
-            );
+        // If billId is provided, set the bill (optional)
+        if (appointmentRequestDTO.getBillId() != null) {
+            Bill bill = new Bill();
+            bill.setId(appointmentRequestDTO.getBillId());  // Fetch bill if necessary
+            appointment.setBill(bill);
         }
-        return null; // Handle case where doctor or patient is not found (could throw an exception)
+
+        // Save the appointment and return the response DTO with mapped Doctor and Patient DTOs
+        appointment = appointmentRepository.save(appointment);
+        return new AppointmentResponseDTO(
+            appointment.getId(),
+            appointment.getAppointmentDate(),
+            new DoctorResponseDTO(
+                doctor.getId(),
+                doctor.getFirstName(),
+                doctor.getLastName(),
+                doctor.getSpecialization(),
+                doctor.getAvailabilitySchedule()
+            ),
+            new PatientResponseDTO(
+                patient.getId(),
+                patient.getFirstName(),
+                patient.getLastName(),
+                patient.getDateOfBirth(),
+                patient.getGender(),
+                patient.getPhoneNumber(),
+                patient.getEmail(),
+                patient.getBloodGroup()
+            )
+        );
     }
+
+
 
     // Get appointment by ID
     public AppointmentResponseDTO getAppointmentById(Long id) {
@@ -102,7 +117,7 @@ public class AppointmentService {
                 ) // Patient mapped to PatientResponseDTO
             );
         }
-        return null; // Handle case where appointment is not found (could throw an exception)
+        throw new AppointmentNotFoundException(id); // Handle case where appointment is not found (could throw an exception)
     }
 
     // Get all appointments
@@ -169,9 +184,13 @@ public class AppointmentService {
                         appointment.getPatient().getBloodGroup()
                     ) // Patient mapped to PatientResponseDTO
                 );
+            }else if(!doctorOptional.isPresent()){
+            	throw new DoctorEntityNotFoundException(id);
+            }else {
+            	throw new PatientEntityNotFoundException(id);
             }
         }
-        return null; // Handle case where appointment or doctor/patient is not found
+        throw new AppointmentNotFoundException(id); // Handle case where appointment or doctor/patient is not found
     }
 
     // Delete an appointment
@@ -180,6 +199,6 @@ public class AppointmentService {
             appointmentRepository.deleteById(id);
             return true;
         }
-        return false; // Handle case where appointment is not found
+        throw new AppointmentNotFoundException(id); // Handle case where appointment is not found
     }
 }

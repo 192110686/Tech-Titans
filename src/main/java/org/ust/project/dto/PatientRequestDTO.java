@@ -30,4 +30,5 @@ public class PatientRequestDTO {
     private String bloodGroup;
     
     private String address;
+    
 }

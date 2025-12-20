@@ -14,18 +14,11 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class AppointmentRequestDTO {
-
     private LocalDate appointmentDate;
-
     private String timeSlot;
-
     private String reasonForVisit;
-
+    private String status;
     private Long doctorId;
-
     private Long patientId;
-
-
-
-
+    private Long billId; // Optional, in case there's a bill related to the appointment
 }

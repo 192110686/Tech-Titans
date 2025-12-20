@@ -23,5 +23,7 @@ public class BillRequestDTO {
 
     private LocalDate dueDate;
 
-    private Long appointmentId;  // The associated appointment ID
+    private Long appointmentId;// The associated appointment ID
+    
+    private Long patientId;// The associated patient ID
 }

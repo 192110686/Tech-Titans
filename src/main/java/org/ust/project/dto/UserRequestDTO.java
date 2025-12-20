@@ -16,8 +16,11 @@ public class UserRequestDTO {
     private String username;
 
     private String password;
+    
     private String role;
 
-  
+    private Long patientId;
+    
+    private Long doctorId;
 
 }

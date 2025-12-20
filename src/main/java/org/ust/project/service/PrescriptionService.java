@@ -12,6 +12,9 @@ import org.ust.project.dto.MedicalRecordResponseDTO;
 import org.ust.project.dto.PatientResponseDTO;
 import org.ust.project.dto.PrescriptionRequestDTO;
 import org.ust.project.dto.PrescriptionResponseDTO;
+import org.ust.project.exception.AppointmentNotFoundException;
+import org.ust.project.exception.MedicalRecordNotFoundException;
+import org.ust.project.exception.PrescriptionNotFoundException;
 import org.ust.project.model.Appointment;
 import org.ust.project.model.MedicalRecord;
 import org.ust.project.model.Prescription;
@@ -116,9 +119,11 @@ public class PrescriptionService {
                 appointmentResponseDTO, // Nested Appointment DTO
                 medicalRecordResponseDTO  // Nested MedicalRecord DTO
             );
+        }else if(!appointmentOptional.isPresent()) {
+        	throw new AppointmentNotFoundException(prescriptionRequestDTO.getAppointmentId());
+        }else {
+        	throw new MedicalRecordNotFoundException(prescriptionRequestDTO.getMedicalRecordId());
         }
-
-        return null; // Handle case where Appointment or MedicalRecord are not found
     }
 
     // Get prescription by ID
@@ -187,8 +192,8 @@ public class PrescriptionService {
                 appointmentResponseDTO,  // Nested Appointment DTO
                 medicalRecordResponseDTO  // Nested MedicalRecord DTO
             );
-        }
-        return null; // Handle case where prescription is not found
+        }throw new PrescriptionNotFoundException(id);
+         // Handle case where prescription is not found
     }
 
     // Get all prescriptions
@@ -341,9 +346,13 @@ public class PrescriptionService {
                     appointmentResponseDTO,  // Nested Appointment DTO
                     medicalRecordResponseDTO  // Nested MedicalRecord DTO
                 );
+            }else if(!appointmentOptional.isPresent()) {
+            	throw new AppointmentNotFoundException(prescriptionRequestDTO.getAppointmentId());
+            }else {
+            	throw new MedicalRecordNotFoundException(prescriptionRequestDTO.getMedicalRecordId());
             }
-        }
-        return null; // Handle cases where Prescription, Appointment, or MedicalRecord are not found
+        }throw new PrescriptionNotFoundException(id);
+       // Handle cases where Prescription, Appointment, or MedicalRecord are not found
     }
 
     // Delete prescription
@@ -352,6 +361,6 @@ public class PrescriptionService {
             prescriptionRepository.deleteById(id);
             return true;
         }
-        return false; // Handle case where prescription is not found
+        throw new PrescriptionNotFoundException(id); // Handle case where prescription is not found
     }
 }

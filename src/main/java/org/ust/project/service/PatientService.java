@@ -4,13 +4,13 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
 import org.ust.project.dto.PatientRequestDTO;
 import org.ust.project.dto.PatientResponseDTO;
+import org.ust.project.exception.PatientEntityNotFoundException;
 import org.ust.project.model.Patient;
 import org.ust.project.repo.PatientRepository;
-import org.springframework.stereotype.Service;
 
-import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class PatientService {
@@ -51,7 +51,7 @@ public class PatientService {
     /* ================= GET BY ID ================= */
     public PatientResponseDTO getPatientById(Long id) {
         Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Patient not found with id: " + id));
+                .orElseThrow(() -> new PatientEntityNotFoundException(id));
 
         return toResponseDTO(patient);
     }
@@ -60,7 +60,7 @@ public class PatientService {
     public PatientResponseDTO updatePatient(Long id, PatientRequestDTO dto) {
 
         Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Patient not found with id: " + id));
+                .orElseThrow(() -> new PatientEntityNotFoundException(id));
 
         patient.setFirstName(dto.getFirstName());
         patient.setLastName(dto.getLastName());
@@ -79,7 +79,7 @@ public class PatientService {
     /* ================= DELETE ================= */
     public void deletePatient(Long id) {
         Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Patient not found with id: " + id));
+                .orElseThrow(() -> new PatientEntityNotFoundException(id));
 
         patientRepository.delete(patient);
     }

@@ -2,6 +2,7 @@ package org.ust.project.service;
 
 import org.ust.project.dto.DoctorRequestDTO;
 import org.ust.project.dto.DoctorResponseDTO;
+import org.ust.project.exception.DoctorEntityNotFoundException;
 import org.ust.project.model.Doctor;
 import org.ust.project.repo.DoctorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +43,7 @@ public class DoctorService {
             return new DoctorResponseDTO(doctor.getId(), doctor.getFirstName(), doctor.getLastName(),
                     doctor.getSpecialization(), doctor.getAvailabilitySchedule());
         }
-        return null; // Or throw an exception if you prefer
+        throw new DoctorEntityNotFoundException(id); // Or throw an exception if you prefer
     }
 
     // Get all doctors
@@ -72,7 +73,7 @@ public class DoctorService {
             return new DoctorResponseDTO(doctor.getId(), doctor.getFirstName(), doctor.getLastName(),
                     doctor.getSpecialization(), doctor.getAvailabilitySchedule());
         }
-        return null; // Or throw an exception if doctor not found
+        throw new DoctorEntityNotFoundException(id); // Or throw an exception if doctor not found
     }
 
     // Delete doctor
@@ -81,6 +82,6 @@ public class DoctorService {
             doctorRepository.deleteById(id);
             return true;
         }
-        return false; // Or throw an exception if doctor not found
+        throw new DoctorEntityNotFoundException(id); // Or throw an exception if doctor not found
     }
 }

@@ -2,6 +2,7 @@ package org.ust.project.service;
 
 import org.ust.project.dto.InventoryItemRequestDTO;
 import org.ust.project.dto.InventoryItemResponseDTO;
+import org.ust.project.exception.InventoryItemNotFoundException;
 import org.ust.project.model.InventoryItem;
 import org.ust.project.repo.InventoryItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,7 @@ public class InventoryItemService {
                     inventoryItem.getUnitPrice()
             );
         }
-        return null; // Or throw an exception if you prefer
+        throw new InventoryItemNotFoundException(id); // Or throw an exception if you prefer
     }
 
     // Get all inventory items
@@ -86,7 +87,7 @@ public class InventoryItemService {
                     inventoryItem.getUnitPrice()
             );
         }
-        return null; // Or throw an exception if item not found
+        throw new InventoryItemNotFoundException(id); // Or throw an exception if item not found
     }
 
     // Delete inventory item
@@ -95,6 +96,6 @@ public class InventoryItemService {
             inventoryItemRepository.deleteById(id);
             return true;
         }
-        return false; // Or throw an exception if item not found
+        throw new InventoryItemNotFoundException(id); // Or throw an exception if item not found
     }
 }

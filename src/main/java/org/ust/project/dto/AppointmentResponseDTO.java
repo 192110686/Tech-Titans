@@ -19,20 +19,14 @@ public class AppointmentResponseDTO {
 
     private LocalDate appointmentDate;
 
-    private String timeSlot;
-
-    private String status;
-
-    private String reasonForVisit;
+//    private String timeSlot;
+//
+//    private String status;
+//
+//    private String reasonForVisit;
 
     private DoctorResponseDTO doctor;  // Nested DTO for doctor details
 
     private PatientResponseDTO patient;  // Nested DTO for patient details
     
-     public AppointmentResponseDTO(Long id, LocalDate appointmentDate, DoctorResponseDTO doctor, PatientResponseDTO patient) {
-        this.id = id;
-        this.appointmentDate = appointmentDate;
-        this.doctor = doctor;
-        this.patient = patient;
-    }
 }
