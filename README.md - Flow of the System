@@ -1,0 +1,21 @@
+Summary of Entity Connections and Flow:
+
+Patient Registration → User Entity → Patient Entity: Patient registers, creates User and Patient accounts.
+
+Patient Sign-In → User Entity: Patient signs in using User credentials.
+
+Doctor Manual Addition → User Entity → Doctor Entity: Admin adds Doctor, creating User and Doctor accounts.
+
+Doctor Sign-In → User Entity: Doctor signs in using User credentials.
+
+Appointment Booking → Appointment Entity → Patient Entity + Doctor Entity: Patient books an Appointment with a Doctor.
+
+Consultation → Consultation Record Entity → Appointment Entity + Patient Entity + Doctor Entity: Doctor creates Consultation Record after Appointment.
+
+Bill Generation → Bill Entity → Consultation Record Entity: Bill is created based on Consultation Record.
+
+Payment → Payment Entity → Bill Entity: Patient pays the Bill, Payment is recorded, and Bill status is updated to Paid.
+
+Inventory Update → Prescription Entity → Inventory Entity: Prescription creates medication records, and Inventory is updated.
+
+Patient and Doctor Interaction → Patient Entity + Doctor Entity: Patient and Doctor can view their respective data post-consultation.
