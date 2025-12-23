@@ -3,7 +3,6 @@ package org.ust.project.model;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
@@ -15,7 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -44,16 +43,20 @@ public class Prescription {
     private LocalDate endDate;
 
     // Relationship: Many prescriptions belong to one appointment
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "appointment_id")
-    @JsonBackReference // To avoid infinite recursion during serialization
-    private Appointment appointment;
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "appointment_id")
+    // @JsonBackReference // To avoid infinite recursion during serialization
+    // private Appointment appointment;
 
-    // Relationship: Many prescriptions belong to one medical record
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "medical_record_id")
-    @JsonBackReference // To avoid infinite recursion during serialization
-    private MedicalRecord medicalRecord;
+//    // Relationship: Many prescriptions belong to one medical record
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "medical_record_id")
+//    @JsonBackReference // To avoid infinite recursion during serialization
+//    private MedicalRecord medicalRecord;
+    
+    @OneToOne(mappedBy = "prescription" , cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Consultation consultation;
 
     // Relationship: Many prescriptions can involve many inventory items
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)

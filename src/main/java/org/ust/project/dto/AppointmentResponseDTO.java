@@ -19,11 +19,11 @@ public class AppointmentResponseDTO {
 
     private LocalDate appointmentDate;
 
-//    private String timeSlot;
-//
-//    private String status;
-//
-//    private String reasonForVisit;
+   private String timeSlot;
+
+   private String status;
+
+   private String reasonForVisit;
 
     private DoctorResponseDTO doctor;  // Nested DTO for doctor details
 

@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,8 +36,8 @@ public class Doctor {
 
     private String firstName;
     private String lastName;
-    private String specialization;  // Doctor's specialization
-    private String qualifications;  // Qualifications, such as MBBS, MD, etc.
+    private String specialization;
+    @NotBlank
     private Long contactNumber;
     private String email;
     private String licenseNumber;
@@ -46,16 +47,6 @@ public class Doctor {
     @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference // To prevent infinite recursion during serialization
     private List<Appointment> appointments;
-
-    // // Relationship: One doctor can have many consultancy records (this would be linked to the patient's consultation)
-    // @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    // @JsonManagedReference // To avoid infinite recursion when serializing ConsultancyRecord
-    // private List<ConsultancyRecord> consultancyRecords;
-
-    // Relationship: One doctor can write many prescriptions
-    @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // To avoid infinite recursion during serialization
-    private List<Prescription> prescriptions;
 
     // Relationship: One doctor has one user account
     @OneToOne(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

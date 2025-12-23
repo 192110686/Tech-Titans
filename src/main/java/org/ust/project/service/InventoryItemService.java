@@ -4,6 +4,7 @@ import org.ust.project.dto.InventoryItemRequestDTO;
 import org.ust.project.dto.InventoryItemResponseDTO;
 import org.ust.project.exception.InventoryItemNotFoundException;
 import org.ust.project.model.InventoryItem;
+import org.ust.project.model.Prescription;
 import org.ust.project.repo.InventoryItemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,25 @@ public class InventoryItemService {
 
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
+    
+    @Autowired
+    private InventoryItemService inventoryItemService;
+
+    public void checkAndUpdateInventory(Prescription prescription) {
+        for (InventoryItem item : prescription.getInventoryItems()) {
+            // Check if the medicine is available in the inventory
+            InventoryItem inventoryItem = inventoryItemRepository.findById(item.getId())
+                    .orElseThrow(() -> new RuntimeException("Medicine not found in inventory"));
+
+            // If found, reduce the stock (quantity)
+            if (inventoryItem.getQuantity() >= item.getQuantity()) {
+                inventoryItem.setQuantity(inventoryItem.getQuantity() - item.getQuantity());  // Reduce the stock
+                inventoryItemRepository.save(inventoryItem);  // Save updated inventory item
+            } else {
+                throw new RuntimeException("Insufficient stock for medicine: " + item.getItemName());
+            }
+        }
+    }
 
     // Create a new inventory item
     public InventoryItemResponseDTO createInventoryItem(InventoryItemRequestDTO inventoryItemRequestDTO) {

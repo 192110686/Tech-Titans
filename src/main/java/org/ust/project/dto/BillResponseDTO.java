@@ -25,15 +25,17 @@ public class BillResponseDTO {
 
     private LocalDate dueDate;
 
-    private AppointmentResponseDTO appointment; // Nested DTO for the appointment linked with the bill
+    private PaymentResponseDTO payment;
 
-    public BillResponseDTO(Long id, LocalDate issueDate, Double totalAmount, String paymentStatus, LocalDate dueDate) {
-        this.id = id;
-        this.issueDate = issueDate;
-        this.totalAmount = totalAmount;
-        this.paymentStatus = paymentStatus;
-        this.dueDate = dueDate;
-    }
+     private ConsultationResponseDTO consultation; // Nested DTO for the appointment linked with the bill
+
+    // public BillResponseDTO(Long id, LocalDate issueDate, Double totalAmount, String paymentStatus, LocalDate dueDate) {
+    //     this.id = id;
+    //     this.issueDate = issueDate;
+    //     this.totalAmount = totalAmount;
+    //     this.paymentStatus = paymentStatus;
+    //     this.dueDate = dueDate;
+    // }
 
 
     

@@ -20,5 +20,5 @@ public class AppointmentRequestDTO {
     private String status;
     private Long doctorId;
     private Long patientId;
-    private Long billId; // Optional, in case there's a bill related to the appointment
+    // private Long billId; // Optional, in case there's a bill related to the appointment
 }
