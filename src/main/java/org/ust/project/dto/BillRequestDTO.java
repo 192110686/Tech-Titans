@@ -26,4 +26,6 @@ public class BillRequestDTO {
     private Long appointmentId;// The associated appointment ID
     
     private Long patientId;// The associated patient ID
+    
+    private Long paymentId;
 }

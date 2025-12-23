@@ -28,9 +28,7 @@ public class PrescriptionResponseDTO {
 
     private LocalDate endDate;
 
-    private AppointmentResponseDTO appointment;  // Nested DTO for appointment details
-
-    private MedicalRecordResponseDTO medicalRecord; 
+    private ConsultationResponseDTO consultation;  // Nested DTO for appointment details
 
 
 

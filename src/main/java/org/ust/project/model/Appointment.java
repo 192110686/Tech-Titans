@@ -52,14 +52,8 @@ public class Appointment {
     @JoinColumn(name = "doctor_id")
     @JsonBackReference // To avoid infinite recursion when serializing Doctor
     private Doctor doctor;
-
-    // Relationship: One appointment can have one bill
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "bill_id")
-    private Bill bill;
-
-    // Relationship: One appointment can have many prescriptions
-    @OneToMany(mappedBy = "appointment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // To avoid infinite recursion when serializing Prescriptions
-    private List<Prescription> prescriptions;
+    
+    @OneToOne(mappedBy = "appointment",cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Consultation consultation;
 }

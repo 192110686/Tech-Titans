@@ -49,16 +49,6 @@ public class Patient {
     @JsonManagedReference // To prevent infinite recursion during serialization
     private List<Appointment> appointments;
 
-    // Relationship: One patient can have many medical records
-    @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // To prevent infinite recursion during serialization
-    private List<MedicalRecord> medicalRecords;
-
-    // Relationship: One patient can have many bills
-    @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // To prevent infinite recursion during serialization
-    private List<Bill> bills;
-
     // Relationship: One patient has one user account
     @OneToOne(mappedBy = "patient", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference // To avoid infinite recursion when serializing User

@@ -37,14 +37,14 @@ public class UserService {
         user.setRegistrationDate(LocalDate.now());
 
         // Check if the user is a patient or a doctor and set the appropriate relationship
-        if ("PATIENT".equals(dto.getRole())) {
+        if ("PATIENT".equalsIgnoreCase(dto.getRole())) {
             // Fetch the patient by patientId from the request
             Patient patient = patientRepository.findById(dto.getPatientId())
                     .orElseThrow(() -> new RuntimeException("Patient not found"));
 
             // Set the patient relationship in User
             user.setPatient(patient);
-        } else if ("DOCTOR".equals(dto.getRole())) {
+        } else if ("DOCTOR".equalsIgnoreCase(dto.getRole())) {
             // Fetch the doctor by doctorId from the request
             Doctor doctor = doctorRepository.findById(dto.getDoctorId())
                     .orElseThrow(() -> new RuntimeException("Doctor not found"));

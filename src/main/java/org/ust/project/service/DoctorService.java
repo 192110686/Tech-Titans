@@ -5,6 +5,9 @@ import org.ust.project.dto.DoctorResponseDTO;
 import org.ust.project.exception.DoctorEntityNotFoundException;
 import org.ust.project.model.Doctor;
 import org.ust.project.repo.DoctorRepository;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

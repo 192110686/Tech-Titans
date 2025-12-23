@@ -2,6 +2,8 @@ package org.ust.project.model;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -36,10 +38,6 @@ public class Bill {
     private String paymentStatus;
     private LocalDate dueDate;
 
-    // Relationship: One bill can be associated with one appointment
-    @OneToOne(mappedBy = "bill", fetch = FetchType.LAZY)
-    private Appointment appointment;
-
     // Relationship: One bill can have one payment
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "payment_id")
@@ -49,4 +47,12 @@ public class Bill {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "patient_id")
     private Patient patient;
+    
+    @OneToOne(mappedBy = "bill",cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Consultation consultation;
+    
+    public void calculateTotalFees(Double consultationFee, Double prescriptionFee) {
+        this.totalAmount = consultationFee + prescriptionFee;
+    }
 }

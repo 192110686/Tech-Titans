@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,6 +37,7 @@ public class Doctor {
     private String firstName;
     private String lastName;
     private String specialization;
+    @NotBlank
     private Long contactNumber;
     private String email;
     private String licenseNumber;
@@ -45,11 +47,6 @@ public class Doctor {
     @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference // To prevent infinite recursion during serialization
     private List<Appointment> appointments;
-
-    // Relationship: One doctor can have many medical records
-    @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // To prevent infinite recursion during serialization
-    private List<MedicalRecord> medicalRecords;
 
     // Relationship: One doctor has one user account
     @OneToOne(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

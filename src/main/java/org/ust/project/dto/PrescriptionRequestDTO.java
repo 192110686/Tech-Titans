@@ -27,9 +27,7 @@ public class PrescriptionRequestDTO {
 
     private LocalDate endDate;
 
-    private Long appointmentId;  // Linking to the Appointment
-
-    private Long medicalRecordId;  // Linking to the MedicalRecord
+    private Long consultationId;  // Linking to the MedicalRecord
 
     
 
