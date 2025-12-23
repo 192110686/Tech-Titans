@@ -1,0 +1,95 @@
+1. User Entity
+
+Attributes: user_id (PK), username, password, role (Patient/Doctor)
+
+Relationships:
+
+One-to-One relationship with Patient (if the user is a Patient).
+
+One-to-One relationship with Doctor (if the user is a Doctor).
+
+2. Patient Entity
+
+Attributes: patient_id (PK), name, contact_info, dob, etc.
+
+Relationships:
+
+One-to-One relationship with User (for authentication purposes).
+
+One-to-Many relationship with Appointment (A Patient can have multiple Appointments).
+
+One-to-Many relationship with Consultation Record (A Patient can have multiple Consultation Records).
+
+3. Doctor Entity
+
+Attributes: doctor_id (PK), name, specialty, contact_info, etc.
+
+Relationships:
+
+One-to-One relationship with User (for authentication purposes).
+
+One-to-Many relationship with Appointment (A Doctor can have multiple Appointments).
+
+One-to-Many relationship with Consultation Record (A Doctor can have multiple Consultation Records).
+
+4. Appointment Entity
+
+Attributes: appointment_id (PK), appointment_date, status (Scheduled, Completed, Cancelled), patient_id (FK), doctor_id (FK)
+
+Relationships:
+
+Many-to-One relationship with Patient (Each Appointment is booked by one Patient).
+
+Many-to-One relationship with Doctor (Each Appointment is booked with one Doctor).
+
+One-to-One relationship with Consultation Record (Each Appointment results in one Consultation Record).
+
+5. Consultation Record Entity
+
+Attributes: consultation_record_id (PK), appointment_id (FK), symptoms, diagnosis, treatment_plan, prescribed_medications, doctor_notes, follow_up_required
+
+Relationships:
+
+One-to-One relationship with Appointment (Each Appointment results in one Consultation Record).
+
+Many-to-One relationship with Patient (A Patient can have multiple Consultation Records).
+
+Many-to-One relationship with Doctor (A Doctor can create multiple Consultation Records).
+
+One-to-One relationship with Bill (Each Consultation Record generates one Bill).
+
+6. Bill Entity
+
+Attributes: bill_id (PK), consultation_record_id (FK), amount, status (Paid, Pending), date_issued
+
+Relationships:
+
+One-to-One relationship with Consultation Record (A Bill is generated for each Consultation Record).
+
+One-to-One relationship with Payment (Each Bill has one Payment).
+
+7. Payment Entity
+
+Attributes: payment_id (PK), bill_id (FK), amount_paid, payment_method (Credit Card, Online Transfer, etc.), payment_date
+
+Relationships:
+
+One-to-One relationship with Bill (Each Payment is linked to one Bill).
+
+8. Prescription Entity
+
+Attributes: prescription_id (PK), consultation_record_id (FK), medication_name, dosage, duration, instructions
+
+Relationships:
+
+One-to-One relationship with Consultation Record (Each Consultation Record may include one or more Prescriptions).
+
+Many-to-One relationship with Inventory (A Prescription may reference multiple medications in the inventory).
+
+9. Inventory Entity
+
+Attributes: inventory_id (PK), medication_name, stock_quantity, unit_price, supplier_info
+
+Relationships:
+
+Many-to-One relationship with Prescription (A Medication from the Inventory can be prescribed in many Prescriptions).
