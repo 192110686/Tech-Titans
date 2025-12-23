@@ -15,9 +15,8 @@ import lombok.ToString;
 @ToString
 public class ConsultationRequestDTO {
 
-    private Long appointmentId;  // ID of the appointment for which the consultation is happening
-    private LocalDate consultationDate;   // Date of the consultation
-    private String reasonForVisit;         // Reason for the visit (e.g., checkup, fever, etc.)
-    private String notes;                  // Additional notes from the consultation
-    private Long prescriptionId;           // ID of the prescription linked to the consultation (optional)
+    private Long appointmentId;          // Mandatory: consultation happens for an appointment
+    private LocalDate consultationDate;  // Date of consultation
+    private String reasonForVisit;        // Reason for visit
+    private String notes;                 // Doctor notes
 }

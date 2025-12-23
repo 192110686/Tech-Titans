@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.ust.project.dto.UserRequestDTO;
 import org.ust.project.dto.UserResponseDTO;
 import org.ust.project.model.Doctor;
@@ -16,6 +17,7 @@ import org.ust.project.repo.PatientRepository;
 import org.ust.project.repo.UserRepository;
 
 @Service
+@Transactional
 public class UserService {
 
     @Autowired
@@ -27,63 +29,86 @@ public class UserService {
     @Autowired
     private DoctorRepository doctorRepository;
 
-    // CREATE USER
+    /* ================= CREATE USER ================= */
     public UserResponseDTO createUser(UserRequestDTO dto) {
+
+        if (dto.getRole() == null) {
+            throw new IllegalArgumentException("Role is required");
+        }
 
         User user = new User();
         user.setUsername(dto.getUsername());
-        user.setPassword(dto.getPassword()); // no encryption (you should add encryption in real projects)
+        user.setPassword(dto.getPassword()); // TODO: encrypt using BCrypt
         user.setRole(dto.getRole());
         user.setRegistrationDate(LocalDate.now());
 
-        // Check if the user is a patient or a doctor and set the appropriate relationship
         if ("PATIENT".equalsIgnoreCase(dto.getRole())) {
-            // Fetch the patient by patientId from the request
+
+            if (dto.getPatientId() == null) {
+                throw new IllegalArgumentException("patientId is required for PATIENT role");
+            }
+
             Patient patient = patientRepository.findById(dto.getPatientId())
                     .orElseThrow(() -> new RuntimeException("Patient not found"));
 
-            // Set the patient relationship in User
+            // 🔥 Maintain BOTH sides
             user.setPatient(patient);
+            patient.setUser(user);
+
         } else if ("DOCTOR".equalsIgnoreCase(dto.getRole())) {
-            // Fetch the doctor by doctorId from the request
+
+            if (dto.getDoctorId() == null) {
+                throw new IllegalArgumentException("doctorId is required for DOCTOR role");
+            }
+
             Doctor doctor = doctorRepository.findById(dto.getDoctorId())
                     .orElseThrow(() -> new RuntimeException("Doctor not found"));
 
-            // Set the doctor relationship in User
+            // 🔥 Maintain BOTH sides
             user.setDoctor(doctor);
+            doctor.setUser(user);
+
+        } else {
+            throw new IllegalArgumentException("Invalid role: " + dto.getRole());
         }
 
-        // Save the user and return the response DTO
-        User saved = userRepository.save(user);
-
-        return convert(saved);
+        User savedUser = userRepository.save(user);
+        return toResponseDTO(savedUser);
     }
 
-    // GET USER BY ID
+    /* ================= GET USER BY ID ================= */
     public UserResponseDTO getUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return convert(user);
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        return toResponseDTO(user);
     }
 
-    // GET ALL USERS
+    /* ================= GET ALL USERS ================= */
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(this::convert)
+                .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    // DELETE USER
+    /* ================= DELETE USER ================= */
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found");
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        // Optional cleanup
+        if (user.getPatient() != null) {
+            user.getPatient().setUser(null);
         }
-        userRepository.deleteById(id);
+        if (user.getDoctor() != null) {
+            user.getDoctor().setUser(null);
+        }
+
+        userRepository.delete(user);
     }
 
-    // MAP TO DTO
-    private UserResponseDTO convert(User user) {
+    /* ================= DTO MAPPER ================= */
+    private UserResponseDTO toResponseDTO(User user) {
         return new UserResponseDTO(
                 user.getId(),
                 user.getUsername(),

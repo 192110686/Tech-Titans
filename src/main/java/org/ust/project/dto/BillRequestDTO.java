@@ -16,16 +16,8 @@ import java.time.LocalDate;
 public class BillRequestDTO {
 
     private LocalDate issueDate;
-
     private Double totalAmount;
-
-    private String paymentStatus;
-
     private LocalDate dueDate;
 
-    private Long appointmentId;// The associated appointment ID
-    
-    private Long patientId;// The associated patient ID
-    
-    private Long paymentId;
+    private Long consultationId; // correct spelling
 }

@@ -15,17 +15,20 @@ import lombok.ToString;
 @ToString
 public class ConsultationResponseDTO {
 
-    private Long id;  // ID of the consultation
-    private LocalDate consultationDate;   // Date of the consultation
-    private String reasonForVisit;         // Reason for the visit (e.g., checkup, fever, etc.)
-    private String notes;                  // Additional notes from the consultation
+    private Long id;
+    private LocalDate consultationDate;
+    private String reasonForVisit;
+    private String notes;
 
-    // Nested DTO for the associated Appointment
+    // Always present
     private AppointmentResponseDTO appointment;
 
-    // Nested DTO for the associated Bill
+    // Optional – may be null initially
     private BillResponseDTO bill;
 
-    // Nested DTO for the associated Prescription
+    // Optional – may be null initially
     private PrescriptionResponseDTO prescription;
+    
+    private String consultationStatus; // COMPLETED / CANCELLED
+
 }

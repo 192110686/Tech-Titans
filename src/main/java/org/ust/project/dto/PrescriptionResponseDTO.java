@@ -1,6 +1,7 @@
 package org.ust.project.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,9 +28,8 @@ public class PrescriptionResponseDTO {
     private LocalDate startDate;
 
     private LocalDate endDate;
+  // Nested DTO for appointment details
 
-    private ConsultationResponseDTO consultation;  // Nested DTO for appointment details
-
-
+    private List<InventoryItemResponseDTO> inventoryItems;
 
 }

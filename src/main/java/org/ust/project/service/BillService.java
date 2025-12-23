@@ -167,7 +167,7 @@ public class BillService {
                         bill.getTotalAmount(),
                         bill.getPaymentStatus(),
                         bill.getDueDate(),
-                        appointmentResponseDTO
+                        consultationResponseDTO
                     );
                 })
                 .collect(Collectors.toList());

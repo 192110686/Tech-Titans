@@ -25,7 +25,7 @@ import lombok.ToString;
 @Table(name = "doctors")
 @Getter
 @Setter
-@ToString(exclude = {"medicalRecords","appointments"})
+@ToString(exclude = {"appointments"})
 @NoArgsConstructor
 @AllArgsConstructor
 public class Doctor {

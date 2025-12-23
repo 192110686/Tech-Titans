@@ -31,13 +31,5 @@ public class PatientResponseDTO {
 
     private String bloodGroup;
 
-    public PatientResponseDTO(LocalDate dateOfBirth, String firstName, Long id, String lastName, Long phoneNumber) {
-        this.dateOfBirth = dateOfBirth;
-        this.firstName = firstName;
-        this.id = id;
-        this.lastName = lastName;
-        this.phoneNumber = phoneNumber;
-    }
-
 
 }

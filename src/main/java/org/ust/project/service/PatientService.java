@@ -5,14 +5,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.ust.project.dto.PatientRequestDTO;
 import org.ust.project.dto.PatientResponseDTO;
 import org.ust.project.exception.PatientEntityNotFoundException;
 import org.ust.project.model.Patient;
 import org.ust.project.repo.PatientRepository;
 
-
 @Service
+@Transactional
 public class PatientService {
 
     private final PatientRepository patientRepository;
@@ -36,7 +37,6 @@ public class PatientService {
         patient.setRegistrationDate(LocalDate.now());
 
         Patient savedPatient = patientRepository.save(patient);
-
         return toResponseDTO(savedPatient);
     }
 
@@ -71,15 +71,21 @@ public class PatientService {
         patient.setBloodGroup(dto.getBloodGroup());
         patient.setAddress(dto.getAddress());
 
-        Patient updatedPatient = patientRepository.save(patient);
-
-        return toResponseDTO(updatedPatient);
+        return toResponseDTO(patientRepository.save(patient));
     }
 
     /* ================= DELETE ================= */
     public void deletePatient(Long id) {
+
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new PatientEntityNotFoundException(id));
+
+        // Safety check (important)
+        if (patient.getAppointments() != null && !patient.getAppointments().isEmpty()) {
+            throw new IllegalStateException(
+                "Cannot delete patient with existing appointments"
+            );
+        }
 
         patientRepository.delete(patient);
     }

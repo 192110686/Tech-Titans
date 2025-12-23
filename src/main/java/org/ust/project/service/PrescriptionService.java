@@ -1,73 +1,47 @@
-package org.ust.project.service;  // Corrected package name
+package org.ust.project.service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.ust.project.dto.AppointmentResponseDTO;
-import org.ust.project.dto.DoctorResponseDTO;
-import org.ust.project.dto.MedicalRecordResponseDTO;
-import org.ust.project.dto.PatientResponseDTO;
+import org.springframework.transaction.annotation.Transactional;
+import org.ust.project.dto.InventoryItemResponseDTO;
 import org.ust.project.dto.PrescriptionRequestDTO;
 import org.ust.project.dto.PrescriptionResponseDTO;
-import org.ust.project.exception.AppointmentNotFoundException;
-import org.ust.project.exception.MedicalRecordNotFoundException;
+import org.ust.project.exception.ConsultationNotFoundException;
+import org.ust.project.exception.InventoryItemNotFoundException;
+import org.ust.project.exception.InsufficientStockException;
 import org.ust.project.exception.PrescriptionNotFoundException;
-import org.ust.project.model.Appointment;
 import org.ust.project.model.Consultation;
 import org.ust.project.model.InventoryItem;
-import org.ust.project.model.MedicalRecord;
 import org.ust.project.model.Prescription;
-import org.ust.project.repo.AppointmentRepository;
 import org.ust.project.repo.ConsultationRepository;
 import org.ust.project.repo.InventoryItemRepository;
-import org.ust.project.repo.MedicalRecordRepository;
 import org.ust.project.repo.PrescriptionRepository;
-
-import jakarta.transaction.Transactional;
 
 @Service
 @Transactional
 public class PrescriptionService {
 
-    @Autowired
-    private PrescriptionRepository prescriptionRepository;
+    private final PrescriptionRepository prescriptionRepository;
+    private final ConsultationRepository consultationRepository;
+    private final InventoryItemRepository inventoryItemRepository;
 
-    @Autowired
-    private ConsultationRepository consultationRepository;
-
-    @Autowired
-    private InventoryItemRepository inventoryItemRepository;
-
-    /* ================= INVENTORY UPDATE ================= */
-    private void checkAndUpdateInventory(Prescription prescription) {
-
-        for (InventoryItem item : prescription.getInventoryItems()) {
-
-            InventoryItem inventoryItem = inventoryItemRepository.findById(item.getId())
-                    .orElseThrow(() ->
-                            new RuntimeException("Medicine not found in inventory: " + item.getItemName()));
-
-            if (inventoryItem.getQuantity() < item.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for: " + item.getItemName());
-            }
-
-            inventoryItem.setQuantity(
-                    inventoryItem.getQuantity() - item.getQuantity()
-            );
-
-            inventoryItemRepository.save(inventoryItem);
-        }
+    public PrescriptionService(
+            PrescriptionRepository prescriptionRepository,
+            ConsultationRepository consultationRepository,
+            InventoryItemRepository inventoryItemRepository) {
+        this.prescriptionRepository = prescriptionRepository;
+        this.consultationRepository = consultationRepository;
+        this.inventoryItemRepository = inventoryItemRepository;
     }
 
     /* ================= CREATE ================= */
     public PrescriptionResponseDTO createPrescription(PrescriptionRequestDTO dto) {
 
         Consultation consultation = consultationRepository.findById(dto.getConsultationId())
-                .orElseThrow(() ->
-                        new RuntimeException("Consultation not found with id: " + dto.getConsultationId()));
+                .orElseThrow(() -> new ConsultationNotFoundException(dto.getConsultationId()));
 
         Prescription prescription = new Prescription();
         prescription.setMedicationName(dto.getMedicationName());
@@ -80,8 +54,11 @@ public class PrescriptionService {
 
         Prescription saved = prescriptionRepository.save(prescription);
 
-        // 🔥 Update inventory after prescription creation
-        checkAndUpdateInventory(saved);
+        // 🔗 Maintain bidirectional consistency
+        consultation.setPrescription(saved);
+
+        // 🔥 Inventory update happens ONLY ON CREATE
+        updateInventoryStock(saved);
 
         return toResponseDTO(saved);
     }
@@ -90,8 +67,7 @@ public class PrescriptionService {
     public PrescriptionResponseDTO getPrescriptionById(Long id) {
 
         Prescription prescription = prescriptionRepository.findById(id)
-                .orElseThrow(() ->
-                        new PrescriptionNotFoundException(id));
+                .orElseThrow(() -> new PrescriptionNotFoundException(id));
 
         return toResponseDTO(prescription);
     }
@@ -109,12 +85,7 @@ public class PrescriptionService {
     public PrescriptionResponseDTO updatePrescription(Long id, PrescriptionRequestDTO dto) {
 
         Prescription prescription = prescriptionRepository.findById(id)
-                .orElseThrow(() ->
-                        new PrescriptionNotFoundException(id));
-
-        Consultation consultation = consultationRepository.findById(dto.getConsultationId())
-                .orElseThrow(() ->
-                        new RuntimeException("Consultation not found with id: " + dto.getConsultationId()));
+                .orElseThrow(() -> new PrescriptionNotFoundException(id));
 
         prescription.setMedicationName(dto.getMedicationName());
         prescription.setDosageMg(dto.getDosageMg());
@@ -122,28 +93,58 @@ public class PrescriptionService {
         prescription.setFrequency(dto.getFrequency());
         prescription.setStartDate(dto.getStartDate());
         prescription.setEndDate(dto.getEndDate());
-        prescription.setConsultation(consultation);
 
         Prescription updated = prescriptionRepository.save(prescription);
 
+        // ❗ Inventory is NOT re-adjusted on update
         return toResponseDTO(updated);
     }
 
     /* ================= DELETE ================= */
     public void deletePrescription(Long id) {
 
-        if (!prescriptionRepository.existsById(id)) {
-            throw new PrescriptionNotFoundException(id);
-        }
+        Prescription prescription = prescriptionRepository.findById(id)
+                .orElseThrow(() -> new PrescriptionNotFoundException(id));
 
-        prescriptionRepository.deleteById(id);
+        prescriptionRepository.delete(prescription);
+    }
+
+    /* ================= INVENTORY UPDATE ================= */
+    private void updateInventoryStock(Prescription prescription) {
+
+        for (InventoryItem item : prescription.getInventoryItems()) {
+
+            InventoryItem stockItem = inventoryItemRepository.findById(item.getId())
+                    .orElseThrow(() ->
+                            new InventoryItemNotFoundException(item.getId()));
+
+            if (stockItem.getQuantity() < item.getQuantity()) {
+                throw new InsufficientStockException(item.getItemName());
+            }
+
+            stockItem.setQuantity(
+                    stockItem.getQuantity() - item.getQuantity()
+            );
+
+            inventoryItemRepository.save(stockItem);
+        }
     }
 
     /* ================= DTO MAPPER ================= */
     private PrescriptionResponseDTO toResponseDTO(Prescription prescription) {
 
-        Consultation consultation = prescription.getConsultation();
-        Appointment appointment = consultation.getAppointment();
+        List<InventoryItemResponseDTO> items =
+            prescription.getInventoryItems() == null
+                ? List.of()
+                : prescription.getInventoryItems()
+                    .stream()
+                    .map(item -> new InventoryItemResponseDTO(
+                            item.getId(),
+                            item.getItemName(),
+                            item.getCategory(),
+                            item.getUnitPrice()
+                    ))
+                    .collect(Collectors.toList());
 
         return new PrescriptionResponseDTO(
                 prescription.getId(),
@@ -153,27 +154,8 @@ public class PrescriptionService {
                 prescription.getFrequency(),
                 prescription.getStartDate(),
                 prescription.getEndDate(),
-                new AppointmentResponseDTO(
-                        appointment.getId(),
-                        appointment.getAppointmentDate(),
-                        new DoctorResponseDTO(
-                                appointment.getDoctor().getId(),
-                                appointment.getDoctor().getFirstName(),
-                                appointment.getDoctor().getLastName(),
-                                appointment.getDoctor().getSpecialization(),
-                                appointment.getDoctor().getAvailabilitySchedule()
-                        ),
-                        new PatientResponseDTO(
-                                appointment.getPatient().getId(),
-                                appointment.getPatient().getFirstName(),
-                                appointment.getPatient().getLastName(),
-                                appointment.getPatient().getDateOfBirth(),
-                                appointment.getPatient().getGender(),
-                                appointment.getPatient().getPhoneNumber(),
-                                appointment.getPatient().getEmail(),
-                                appointment.getPatient().getBloodGroup()
-                        )
-                )
+                items
         );
     }
+
 }

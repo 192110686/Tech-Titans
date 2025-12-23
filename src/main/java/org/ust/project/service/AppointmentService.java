@@ -1,11 +1,10 @@
-package org.ust.project.service;  // Corrected package name
+package org.ust.project.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.ust.project.dto.AppointmentRequestDTO;
 import org.ust.project.dto.AppointmentResponseDTO;
 import org.ust.project.dto.DoctorResponseDTO;
@@ -14,7 +13,6 @@ import org.ust.project.exception.AppointmentNotFoundException;
 import org.ust.project.exception.DoctorEntityNotFoundException;
 import org.ust.project.exception.PatientEntityNotFoundException;
 import org.ust.project.model.Appointment;
-import org.ust.project.model.Bill;
 import org.ust.project.model.Doctor;
 import org.ust.project.model.Patient;
 import org.ust.project.repo.AppointmentRepository;
@@ -22,158 +20,119 @@ import org.ust.project.repo.DoctorRepository;
 import org.ust.project.repo.PatientRepository;
 
 @Service
+@Transactional
 public class AppointmentService {
 
-    @Autowired
-    private AppointmentRepository appointmentRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final DoctorRepository doctorRepository;
+    private final PatientRepository patientRepository;
 
-    @Autowired
-    private DoctorRepository doctorRepository;
+    public AppointmentService(
+            AppointmentRepository appointmentRepository,
+            DoctorRepository doctorRepository,
+            PatientRepository patientRepository) {
 
-    @Autowired
-    private PatientRepository patientRepository;
-
-    // Create a new appointment
-    public AppointmentResponseDTO createAppointment(AppointmentRequestDTO appointmentRequestDTO) {
-        Appointment appointment = new Appointment();
-
-        // Fetch the Doctor and Patient from their respective repositories using their IDs
-        Doctor doctor = doctorRepository.findById(appointmentRequestDTO.getDoctorId())
-            .orElseThrow(() -> new DoctorEntityNotFoundException(appointmentRequestDTO.getDoctorId()));
-        
-        Patient patient = patientRepository.findById(appointmentRequestDTO.getPatientId())
-            .orElseThrow(() -> new PatientEntityNotFoundException(appointmentRequestDTO.getPatientId()));
-
-        // Set the doctor, patient, and appointment date
-        appointment.setDoctor(doctor);
-        appointment.setPatient(patient);
-        appointment.setAppointmentDate(appointmentRequestDTO.getAppointmentDate());
-
-        // Set additional fields
-        appointment.setTimeSlot(appointmentRequestDTO.getTimeSlot());
-        appointment.setReasonForVisit(appointmentRequestDTO.getReasonForVisit());
-        appointment.setStatus(appointmentRequestDTO.getStatus());
-
-        // If billId is provided, set the bill (optional)
-        if (appointmentRequestDTO.getBillId() != null) {
-            Bill bill = new Bill();
-            bill.setId(appointmentRequestDTO.getBillId());  // Fetch bill if necessary
-            appointment.setBill(bill);
-        }
-
-        // Save the appointment and return the response DTO with mapped Doctor and Patient DTOs
-        appointment = appointmentRepository.save(appointment);
-        return new AppointmentResponseDTO(
-            appointment.getId(),
-            appointment.getAppointmentDate(),
-            new DoctorResponseDTO(
-                doctor.getId(),
-                doctor.getFirstName(),
-                doctor.getLastName(),
-                doctor.getSpecialization(),
-                doctor.getAvailabilitySchedule()
-            ),
-            new PatientResponseDTO(
-                patient.getId(),
-                patient.getFirstName(),
-                patient.getLastName(),
-                patient.getDateOfBirth(),
-                patient.getGender(),
-                patient.getPhoneNumber(),
-                patient.getEmail(),
-                patient.getBloodGroup()
-            )
-        );
+        this.appointmentRepository = appointmentRepository;
+        this.doctorRepository = doctorRepository;
+        this.patientRepository = patientRepository;
     }
 
+    /* ================= CREATE ================= */
+    public AppointmentResponseDTO createAppointment(AppointmentRequestDTO dto) {
 
+        Doctor doctor = doctorRepository.findById(dto.getDoctorId())
+                .orElseThrow(() -> new DoctorEntityNotFoundException(dto.getDoctorId()));
 
-    // Get appointment by ID
-    public AppointmentResponseDTO getAppointmentById(Long id) {
-        Optional<Appointment> appointmentOptional = appointmentRepository.findById(id);
-        if (appointmentOptional.isPresent()) {
-            Appointment appointment = appointmentOptional.get();
+        Patient patient = patientRepository.findById(dto.getPatientId())
+                .orElseThrow(() -> new PatientEntityNotFoundException(dto.getPatientId()));
 
-            // Convert Doctor and Patient entities to their respective DTOs
-            return new AppointmentResponseDTO(
-                appointment.getId(),
-                appointment.getAppointmentDate(),
-                new DoctorResponseDTO(
-                    appointment.getDoctor().getId(),
-                    appointment.getDoctor().getFirstName(),
-                    appointment.getDoctor().getLastName(),
-                    appointment.getDoctor().getSpecialization(),
-                    appointment.getDoctor().getAvailabilitySchedule()
-                ), // Doctor mapped to DoctorResponseDTO
-                new PatientResponseDTO(
-                    appointment.getPatient().getId(),
-                    appointment.getPatient().getFirstName(),
-                    appointment.getPatient().getLastName(),
-                    appointment.getPatient().getDateOfBirth(),
-                    appointment.getPatient().getGender(),
-                    appointment.getPatient().getPhoneNumber(),
-                    appointment.getPatient().getEmail(),
-                    appointment.getPatient().getBloodGroup()
-                ) // Patient mapped to PatientResponseDTO
+        // 🔐 Prevent double booking
+        boolean alreadyBooked = appointmentRepository
+                .existsByDoctorIdAndAppointmentDateAndTimeSlot(
+                        doctor.getId(),
+                        dto.getAppointmentDate(),
+                        dto.getTimeSlot()
+                );
+
+        if (alreadyBooked) {
+            throw new IllegalStateException(
+                "Doctor is already booked for this time slot"
             );
         }
-        throw new AppointmentNotFoundException(id); // Handle case where appointment is not found (could throw an exception)
+
+        Appointment appointment = new Appointment();
+        appointment.setDoctor(doctor);
+        appointment.setPatient(patient);
+        appointment.setAppointmentDate(dto.getAppointmentDate());
+        appointment.setTimeSlot(dto.getTimeSlot());
+        appointment.setReasonForVisit(dto.getReasonForVisit());
+        appointment.setStatus(dto.getStatus()); // SCHEDULED / CANCELLED / COMPLETED
+
+        return toResponseDTO(appointmentRepository.save(appointment));
     }
 
-    // Get all appointments
+    /* ================= GET BY ID ================= */
+    public AppointmentResponseDTO getAppointmentById(Long id) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new AppointmentNotFoundException(id));
+
+        return toResponseDTO(appointment);
+    }
+
+    /* ================= GET ALL ================= */
     public List<AppointmentResponseDTO> getAllAppointments() {
-        List<Appointment> appointments = appointmentRepository.findAll();
-        return appointments.stream()
-            .map(appointment -> new AppointmentResponseDTO(
+        return appointmentRepository.findAll()
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /* ================= UPDATE ================= */
+    public AppointmentResponseDTO updateAppointment(Long id, AppointmentRequestDTO dto) {
+
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new AppointmentNotFoundException(id));
+
+        Doctor doctor = doctorRepository.findById(dto.getDoctorId())
+                .orElseThrow(() -> new DoctorEntityNotFoundException(dto.getDoctorId()));
+
+        Patient patient = patientRepository.findById(dto.getPatientId())
+                .orElseThrow(() -> new PatientEntityNotFoundException(dto.getPatientId()));
+
+        appointment.setDoctor(doctor);
+        appointment.setPatient(patient);
+        appointment.setAppointmentDate(dto.getAppointmentDate());
+        appointment.setTimeSlot(dto.getTimeSlot());
+        appointment.setReasonForVisit(dto.getReasonForVisit());
+        appointment.setStatus(dto.getStatus());
+
+        return toResponseDTO(appointmentRepository.save(appointment));
+    }
+
+    /* ================= DELETE ================= */
+    public void deleteAppointment(Long id) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new AppointmentNotFoundException(id));
+
+        appointmentRepository.delete(appointment);
+    }
+
+    /* ================= DTO MAPPER ================= */
+    private AppointmentResponseDTO toResponseDTO(Appointment appointment) {
+        return new AppointmentResponseDTO(
                 appointment.getId(),
                 appointment.getAppointmentDate(),
+                appointment.getTimeSlot(),
+                appointment.getReasonForVisit(),
+                appointment.getStatus(),
                 new DoctorResponseDTO(
-                    appointment.getDoctor().getId(),
-                    appointment.getDoctor().getFirstName(),
-                    appointment.getDoctor().getLastName(),
-                    appointment.getDoctor().getSpecialization(),
-                    appointment.getDoctor().getAvailabilitySchedule()
-                ), // Doctor mapped to DoctorResponseDTO
-                new PatientResponseDTO(
-                    appointment.getPatient().getId(),
-                    appointment.getPatient().getFirstName(),
-                    appointment.getPatient().getLastName(),
-                    appointment.getPatient().getDateOfBirth(),
-                    appointment.getPatient().getGender(),
-                    appointment.getPatient().getPhoneNumber(),
-                    appointment.getPatient().getEmail(),
-                    appointment.getPatient().getBloodGroup()
-                ) // Patient mapped to PatientResponseDTO
-            ))
-            .collect(Collectors.toList());
-    }
-
-    // Update an appointment
-    public AppointmentResponseDTO updateAppointment(Long id, AppointmentRequestDTO appointmentRequestDTO) {
-        Optional<Appointment> appointmentOptional = appointmentRepository.findById(id);
-        if (appointmentOptional.isPresent()) {
-            Appointment appointment = appointmentOptional.get();
-
-            Optional<Doctor> doctorOptional = doctorRepository.findById(appointmentRequestDTO.getDoctorId());
-            Optional<Patient> patientOptional = patientRepository.findById(appointmentRequestDTO.getPatientId());
-
-            if (doctorOptional.isPresent() && patientOptional.isPresent()) {
-                appointment.setDoctor(doctorOptional.get());
-                appointment.setPatient(patientOptional.get());
-                appointment.setAppointmentDate(appointmentRequestDTO.getAppointmentDate());
-
-                appointment = appointmentRepository.save(appointment);
-                return new AppointmentResponseDTO(
-                    appointment.getId(),
-                    appointment.getAppointmentDate(),
-                    new DoctorResponseDTO(
                         appointment.getDoctor().getId(),
                         appointment.getDoctor().getFirstName(),
                         appointment.getDoctor().getLastName(),
                         appointment.getDoctor().getSpecialization(),
                         appointment.getDoctor().getAvailabilitySchedule()
-                    ), // Doctor mapped to DoctorResponseDTO
-                    new PatientResponseDTO(
+                ),
+                new PatientResponseDTO(
                         appointment.getPatient().getId(),
                         appointment.getPatient().getFirstName(),
                         appointment.getPatient().getLastName(),
@@ -182,23 +141,7 @@ public class AppointmentService {
                         appointment.getPatient().getPhoneNumber(),
                         appointment.getPatient().getEmail(),
                         appointment.getPatient().getBloodGroup()
-                    ) // Patient mapped to PatientResponseDTO
-                );
-            }else if(!doctorOptional.isPresent()){
-            	throw new DoctorEntityNotFoundException(id);
-            }else {
-            	throw new PatientEntityNotFoundException(id);
-            }
-        }
-        throw new AppointmentNotFoundException(id); // Handle case where appointment or doctor/patient is not found
-    }
-
-    // Delete an appointment
-    public boolean deleteAppointment(Long id) {
-        if (appointmentRepository.existsById(id)) {
-            appointmentRepository.deleteById(id);
-            return true;
-        }
-        throw new AppointmentNotFoundException(id); // Handle case where appointment is not found
+                )
+        );
     }
 }
