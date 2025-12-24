@@ -1,26 +1,23 @@
 package org.ust.project.service;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.ust.project.dto.InventoryItemRequestDTO;
 import org.ust.project.dto.InventoryItemResponseDTO;
 import org.ust.project.exception.InventoryItemNotFoundException;
 import org.ust.project.model.InventoryItem;
 import org.ust.project.model.Prescription;
 import org.ust.project.repo.InventoryItemRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class InventoryItemService {
 
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
-    
-    @Autowired
-    private InventoryItemService inventoryItemService;
 
     public void checkAndUpdateInventory(Prescription prescription) {
         for (InventoryItem item : prescription.getInventoryItems()) {

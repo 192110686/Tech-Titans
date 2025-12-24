@@ -37,7 +37,6 @@ public class Doctor {
     private String firstName;
     private String lastName;
     private String specialization;
-    @NotBlank
     private Long contactNumber;
     private String email;
     private String licenseNumber;
