@@ -51,11 +51,15 @@ public class AppointmentService {
         Patient patient = patientRepository.findById(dto.getPatientId())
                 .orElseThrow(() -> new PatientEntityNotFoundException(dto.getPatientId()));
 
-        // Prevent double booking: Check if doctor is already booked at the requested time
-        boolean alreadyBooked = appointmentRepository.existsByDoctorIdAndAppointmentDateTime(
-                doctor.getId(), 
-                dto.getAppointmentDateTime() // LocalDateTime
+
+// Prevent double booking
+boolean alreadyBooked = appointmentRepository
+        .existsByDoctorIdAndAppointmentDateAndTimeSlot(
+                doctor.getId(),
+                dto.getAppointmentDateTime(),
+                dto.getTimeSlot()
         );
+
 
         if (alreadyBooked) {
             throw new IllegalStateException("Doctor is already booked for this time slot");

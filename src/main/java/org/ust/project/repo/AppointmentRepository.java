@@ -15,7 +15,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByAppointmentDate(LocalDate date);
     boolean existsByDoctorIdAndAppointmentDateAndTimeSlot(
     	    Long doctorId,
-    	    LocalDate appointmentDate,
+    	    LocalDateTime appointmentDate,
     	    String timeSlot
     	);
    // Query to check if doctor is available at a specific time

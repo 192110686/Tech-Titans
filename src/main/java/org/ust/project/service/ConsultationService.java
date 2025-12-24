@@ -5,13 +5,24 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+
 import org.springframework.transaction.annotation.Transactional;
 import org.ust.project.dto.*;
+
+import org.ust.project.dto.AppointmentResponseDTO;
+import org.ust.project.dto.BillResponseDTO;
+import org.ust.project.dto.ConsultationRequestDTO;
+import org.ust.project.dto.ConsultationResponseDTO;
+import org.ust.project.dto.DoctorResponseDTO;
+import org.ust.project.dto.PatientResponseDTO;
+import org.ust.project.dto.PrescriptionResponseDTO;
+
 import org.ust.project.exception.AppointmentNotFoundException;
 import org.ust.project.exception.ConsultationNotFoundException;
 import org.ust.project.model.*;
 import org.ust.project.repo.AppointmentRepository;
 import org.ust.project.repo.ConsultationRepository;
+
 
 @Service
 @Transactional
@@ -19,15 +30,12 @@ public class ConsultationService {
 
     private final ConsultationRepository consultationRepository;
     private final AppointmentRepository appointmentRepository;
-    private final InventoryItemService inventoryItemService;
 
     public ConsultationService(
             ConsultationRepository consultationRepository,
-            AppointmentRepository appointmentRepository,
-            InventoryItemService inventoryItemService) {
+            AppointmentRepository appointmentRepository) {
         this.consultationRepository = consultationRepository;
         this.appointmentRepository = appointmentRepository;
-        this.inventoryItemService = inventoryItemService;
     }
 
     /* ================= CREATE ================= */
@@ -36,15 +44,33 @@ public class ConsultationService {
         Appointment appointment = appointmentRepository.findById(dto.getAppointmentId())
                 .orElseThrow(() -> new AppointmentNotFoundException(dto.getAppointmentId()));
 
+        // 🔹 Update appointment status when consultation starts
+        appointment.setStatus("IN_PROGRESS");
+
         Consultation consultation = new Consultation();
         consultation.setAppointment(appointment);
         consultation.setConsultationDate(dto.getConsultationDate());
         consultation.setReasonForVisit(dto.getReasonForVisit());
         consultation.setNotes(dto.getNotes());
 
+        // 🔹 Maintain bidirectional mapping
+        appointment.setConsultation(consultation);
+
         Consultation saved = consultationRepository.save(consultation);
 
         return toResponseDTO(saved);
+    }
+
+    /* ================= COMPLETE CONSULTATION ================= */
+    public ConsultationResponseDTO completeConsultation(Long consultationId) {
+
+        Consultation consultation = consultationRepository.findById(consultationId)
+                .orElseThrow(() -> new ConsultationNotFoundException(consultationId));
+
+        Appointment appointment = consultation.getAppointment();
+        appointment.setStatus("COMPLETED");
+
+        return toResponseDTO(consultation);
     }
 
     /* ================= GET BY ID ================= */
@@ -75,9 +101,7 @@ public class ConsultationService {
         consultation.setReasonForVisit(dto.getReasonForVisit());
         consultation.setNotes(dto.getNotes());
 
-        Consultation updated = consultationRepository.save(consultation);
-
-        return toResponseDTO(updated);
+        return toResponseDTO(consultation);
     }
 
     /* ================= DELETE ================= */
@@ -92,69 +116,56 @@ public class ConsultationService {
     /* ================= DTO MAPPER ================= */
     private ConsultationResponseDTO toResponseDTO(Consultation consultation) {
 
-        Appointment appointment = consultation.getAppointment();
+        Appointment appt = consultation.getAppointment();
 
-        // Extract time from LocalDateTime (appointmentDateTime)
-        String timeSlot = appointment.getAppointmentDateTime().format(DateTimeFormatter.ofPattern("HH:mm")); // Extract time
+        AppointmentResponseDTO appointmentDTO =
+                new AppointmentResponseDTO(
+                        appt.getId(),
+                        appt.getAppointmentDateTime(),
+                        appt.getReasonForVisit(),
+                        appt.getStatus(),
+                        new DoctorResponseDTO(
+                                appt.getDoctor().getId(),
+                                appt.getDoctor().getFirstName(),
+                                appt.getDoctor().getLastName(),
+                                appt.getDoctor().getSpecialization(),
+                                appt.getDoctor().getAvailabilitySchedule()
+                        ),
+                        new PatientResponseDTO(
+                                appt.getPatient().getId(),
+                                appt.getPatient().getFirstName(),
+                                appt.getPatient().getLastName(),
+                                appt.getPatient().getDateOfBirth(),
+                                appt.getPatient().getGender(),
+                                appt.getPatient().getPhoneNumber(),
+                                appt.getPatient().getEmail(),
+                                appt.getPatient().getBloodGroup()
+                        )
+                );
 
-        AppointmentResponseDTO appointmentDTO = new AppointmentResponseDTO(
-                appointment.getId(),
-                appointment.getAppointmentDateTime(),
-                appointment.getReasonForVisit(),
-                appointment.getStatus(),
-                timeSlot,  // Now using formatted time
-                new DoctorResponseDTO(
-                        appointment.getDoctor().getId(),
-                        appointment.getDoctor().getFirstName(),
-                        appointment.getDoctor().getLastName(),
-                        appointment.getDoctor().getSpecialization(),
-                        appointment.getDoctor().getAvailabilitySchedule()
-                ),
-                new PatientResponseDTO(
-                        appointment.getPatient().getId(),
-                        appointment.getPatient().getFirstName(),
-                        appointment.getPatient().getLastName(),
-                        appointment.getPatient().getDateOfBirth(),
-                        appointment.getPatient().getGender(),
-                        appointment.getPatient().getPhoneNumber(),
-                        appointment.getPatient().getEmail(),
-                        appointment.getPatient().getBloodGroup()
-                )
-        );
+        BillResponseDTO billDTO =
+                consultation.getBill() == null ? null :
+                        new BillResponseDTO(
+                                consultation.getBill().getId(),
+                                consultation.getBill().getIssueDate(),
+                                consultation.getBill().getTotalAmount(),
+                                consultation.getBill().getPaymentStatus(),
+                                consultation.getBill().getDueDate(),
+                                null // avoid circular reference
+                        );
 
-        // If there's a bill associated with the consultation
-        BillResponseDTO billDTO = consultation.getBill() != null
-                ? new BillResponseDTO(
-                        consultation.getBill().getId(),
-                        consultation.getBill().getIssueDate(),
-                        consultation.getBill().getTotalAmount(),
-                        consultation.getBill().getPaymentStatus(),
-                        consultation.getBill().getDueDate(),
-                        null   // Avoid circular reference
-                )
-                : null;
-
-        // If there's a prescription associated with the consultation
-        PrescriptionResponseDTO prescriptionDTO = consultation.getPrescription() != null
-                ? new PrescriptionResponseDTO(
-                        consultation.getPrescription().getId(),
-                        consultation.getPrescription().getMedicationName(),
-                        consultation.getPrescription().getDosageMg(),
-                        consultation.getPrescription().getPrice(),
-                        consultation.getPrescription().getFrequency(),
-                        consultation.getPrescription().getStartDate(),
-                        consultation.getPrescription().getEndDate(),
-                        consultation.getPrescription().getInventoryItems()
-                                .stream()
-                                .map(item -> new org.ust.project.dto.InventoryItemResponseDTO(
-                                        item.getId(),
-                                        item.getItemName(),
-                                        item.getCategory(),
-                                        item.getUnitPrice()
-                                ))
-                                .collect(Collectors.toList())
-                )
-                : null;
+        PrescriptionResponseDTO prescriptionDTO =
+                consultation.getPrescription() == null ? null :
+                        new PrescriptionResponseDTO(
+                                consultation.getPrescription().getId(),
+                                consultation.getPrescription().getMedicationName(),
+                                consultation.getPrescription().getDosageMg(),
+                                consultation.getPrescription().getPrice(),
+                                consultation.getPrescription().getFrequency(),
+                                consultation.getPrescription().getStartDate(),
+                                consultation.getPrescription().getEndDate(),
+                                null
+                        );
 
         return new ConsultationResponseDTO(
                 consultation.getId(),
