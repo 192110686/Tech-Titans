@@ -74,4 +74,11 @@ public class AppointmentController {
 
         return ResponseEntity.noContent().build();
     }
+
+    /* ================= BOOK APPOINTMENT ================= */
+    @PostMapping("/book")
+    public ResponseEntity<String> bookAppointment(@RequestBody AppointmentRequestDTO appointmentRequest) {
+        String response = appointmentService.bookAppointment(appointmentRequest);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
 }

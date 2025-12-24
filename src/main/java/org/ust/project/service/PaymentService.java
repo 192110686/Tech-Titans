@@ -40,6 +40,9 @@ public class PaymentService {
 
         Payment savedPayment = paymentRepository.save(payment);
 
+
+        // Update bill status to PAID
+
         bill.setPaymentStatus("PAID");
         billRepository.save(bill);
 
@@ -96,6 +99,9 @@ public class PaymentService {
         Consultation consultation = bill.getConsultation();
         Appointment appointment = consultation.getAppointment();
 
+        // Use appointmentDateTime (no getTimeSlot() anymore)
+        String timeSlot = appointment.getAppointmentDateTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+
         return new PaymentResponseDTO(
                 payment.getId(),
                 payment.getPaymentDate(),
@@ -114,10 +120,10 @@ public class PaymentService {
                                 consultation.getNotes(),
                                 new AppointmentResponseDTO(
                                         appointment.getId(),
-                                        appointment.getAppointmentDate(),
+                                        appointment.getAppointmentDateTime(),
                                         appointment.getReasonForVisit(),
                                         appointment.getStatus(),
-                                        appointment.getTimeSlot(),
+                                        timeSlot,  // Replace with formatted time (appointmentDateTime)
                                         new DoctorResponseDTO(
                                                 appointment.getDoctor().getId(),
                                                 appointment.getDoctor().getFirstName(),
@@ -136,12 +142,11 @@ public class PaymentService {
                                                 appointment.getPatient().getBloodGroup()
                                         )
                                 ),
-                                null,   // bill (avoid circular reference)
-                                null ,   // prescription (optional here)
+                                null,   // Avoid circular reference (we don't need to send bill back)
+                                null,   // Prescription (optional, and may not be needed in payment response)
                                 consultation.getConsultationStatus()
                         )
                 )
         );
-
     }
 }

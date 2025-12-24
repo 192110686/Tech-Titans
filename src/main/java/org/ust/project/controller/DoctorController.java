@@ -1,5 +1,6 @@
 package org.ust.project.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.validation.Valid;
@@ -48,7 +49,6 @@ public class DoctorController {
     /* ================= GET ALL ================= */
     @GetMapping
     public ResponseEntity<List<DoctorResponseDTO>> getAllDoctors() {
-
         List<DoctorResponseDTO> responses =
                 doctorService.getAllDoctors();
 
@@ -74,5 +74,16 @@ public class DoctorController {
         doctorService.deleteDoctor(id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    /* ================= CHECK DOCTOR AVAILABILITY ================= */
+    @GetMapping("/{doctorId}/availability")
+    public ResponseEntity<List<LocalDateTime>> checkDoctorAvailability(
+            @PathVariable Long doctorId,
+            @RequestParam LocalDateTime startTime,
+            @RequestParam LocalDateTime endTime) {
+
+        List<LocalDateTime> availableSlots = doctorService.getAvailableSlots(doctorId, startTime, endTime);
+        return ResponseEntity.ok(availableSlots);
     }
 }

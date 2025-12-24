@@ -1,5 +1,7 @@
 package org.ust.project.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,8 +29,7 @@ public class BillService {
     public BillResponseDTO createBill(BillRequestDTO dto) {
 
         Consultation consultation = consultationRepository.findById(dto.getConsultationId())
-                .orElseThrow(() ->
-                        new ConsultationNotFoundException(dto.getConsultationId()));
+                .orElseThrow(() -> new ConsultationNotFoundException(dto.getConsultationId()));
 
         Bill bill = new Bill();
         bill.setIssueDate(dto.getIssueDate());
@@ -93,6 +94,9 @@ public class BillService {
         Consultation consultation = bill.getConsultation();
         Appointment appointment = consultation.getAppointment();
 
+        // Extract time from LocalDateTime (appointmentDateTime)
+        String timeSlot = appointment.getAppointmentDateTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+
         return new BillResponseDTO(
                 bill.getId(),
                 bill.getIssueDate(),
@@ -106,10 +110,10 @@ public class BillService {
                         consultation.getNotes(),
                         new AppointmentResponseDTO(
                                 appointment.getId(),
-                                appointment.getAppointmentDate(),
+                                appointment.getAppointmentDateTime(),
                                 appointment.getReasonForVisit(),
                                 appointment.getStatus(),
-                                appointment.getTimeSlot(),
+                                timeSlot, // Use the formatted time here
                                 new DoctorResponseDTO(
                                         appointment.getDoctor().getId(),
                                         appointment.getDoctor().getFirstName(),
