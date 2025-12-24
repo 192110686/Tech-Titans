@@ -31,4 +31,6 @@ public class PatientRequestDTO {
     
     private String address;
     
+    private Long userId;
+    
 }

@@ -11,10 +11,7 @@ import org.ust.project.model.Doctor;
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
     List<Appointment> findByDoctorId(Long doctorId);
     List<Appointment> findByPatientId(Long patientId);
-    boolean existsByDoctorIdAndAppointmentDateAndTimeSlot(
-    	    Long doctorId,
-    	    LocalDateTime appointmentDateTime
-    	);
+  
    // Query to check if doctor is available at a specific time
     List<Appointment> findByDoctorAndAppointmentDateTime(Doctor doctor, LocalDateTime appointmentDateTime);
 

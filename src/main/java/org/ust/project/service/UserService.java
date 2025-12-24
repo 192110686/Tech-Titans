@@ -32,49 +32,21 @@ public class UserService {
     /* ================= CREATE USER ================= */
     public UserResponseDTO createUser(UserRequestDTO dto) {
 
-        if (dto.getRole() == null) {
-            throw new IllegalArgumentException("Role is required");
-        }
-
         User user = new User();
         user.setUsername(dto.getUsername());
-        user.setPassword(dto.getPassword()); // TODO: encrypt using BCrypt
+        user.setPassword(dto.getPassword());
         user.setRole(dto.getRole());
-        user.setRegistrationDate(LocalDate.now());
 
-        if ("PATIENT".equalsIgnoreCase(dto.getRole())) {
+        // doctor & patient are NULL here
+        User saved = userRepository.save(user);
 
-            if (dto.getPatientId() == null) {
-                throw new IllegalArgumentException("patientId is required for PATIENT role");
-            }
-
-            Patient patient = patientRepository.findById(dto.getPatientId())
-                    .orElseThrow(() -> new RuntimeException("Patient not found"));
-
-            // 🔥 Maintain BOTH sides
-            user.setPatient(patient);
-            patient.setUser(user);
-
-        } else if ("DOCTOR".equalsIgnoreCase(dto.getRole())) {
-
-            if (dto.getDoctorId() == null) {
-                throw new IllegalArgumentException("doctorId is required for DOCTOR role");
-            }
-
-            Doctor doctor = doctorRepository.findById(dto.getDoctorId())
-                    .orElseThrow(() -> new RuntimeException("Doctor not found"));
-
-            // 🔥 Maintain BOTH sides
-            user.setDoctor(doctor);
-            doctor.setUser(user);
-
-        } else {
-            throw new IllegalArgumentException("Invalid role: " + dto.getRole());
-        }
-
-        User savedUser = userRepository.save(user);
-        return toResponseDTO(savedUser);
+        return new UserResponseDTO(
+                saved.getId(),
+                saved.getUsername(),
+                saved.getRole()
+        );
     }
+
 
     /* ================= GET USER BY ID ================= */
     public UserResponseDTO getUser(Long id) {
