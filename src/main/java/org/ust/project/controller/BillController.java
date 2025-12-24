@@ -1,76 +1,44 @@
 package org.ust.project.controller;
 
-import java.util.List;
-
-import jakarta.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import org.ust.project.dto.BillRequestDTO;
 import org.ust.project.dto.BillResponseDTO;
 import org.ust.project.service.BillService;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/bills")
+@RequestMapping("/api/bills")
 public class BillController {
 
+    private final BillService billService;
+
     @Autowired
-    private BillService billService;
-
-    /* ================= CREATE ================= */
-    @PostMapping
-    public ResponseEntity<BillResponseDTO> createBill(
-            @Valid @RequestBody BillRequestDTO requestDTO) {
-
-        BillResponseDTO response =
-                billService.createBill(requestDTO);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
+    public BillController(BillService billService) {
+        this.billService = billService;
     }
 
-    /* ================= GET BY ID ================= */
+    /* ================= CREATE BILL ================= */
+    @PostMapping("/{consultationId}")
+    public ResponseEntity<BillResponseDTO> createBill(@PathVariable Long consultationId) {
+        BillResponseDTO billResponseDTO = billService.createBill(consultationId);
+        return ResponseEntity.ok(billResponseDTO);
+    }
+
+    /* ================= GET BILL BY ID ================= */
     @GetMapping("/{id}")
     public ResponseEntity<BillResponseDTO> getBillById(@PathVariable Long id) {
-
-        BillResponseDTO response =
-                billService.getBillById(id);
-
-        return ResponseEntity.ok(response);
+        BillResponseDTO billResponseDTO = billService.getBillById(id);
+        return ResponseEntity.ok(billResponseDTO);
     }
 
-    /* ================= GET ALL ================= */
+    /* ================= GET ALL BILLS ================= */
     @GetMapping
     public ResponseEntity<List<BillResponseDTO>> getAllBills() {
-
-        List<BillResponseDTO> responses =
-                billService.getAllBills();
-
-        return ResponseEntity.ok(responses);
+        List<BillResponseDTO> bills = billService.getAllBills();
+        return ResponseEntity.ok(bills);
     }
 
-    /* ================= UPDATE ================= */
-    @PutMapping("/{id}")
-    public ResponseEntity<BillResponseDTO> updateBill(
-            @PathVariable Long id,
-            @Valid @RequestBody BillRequestDTO requestDTO) {
-
-        BillResponseDTO response =
-                billService.updateBill(id, requestDTO);
-
-        return ResponseEntity.ok(response);
-    }
-
-    /* ================= DELETE ================= */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBill(@PathVariable Long id) {
-
-        billService.deleteBill(id);
-
-        return ResponseEntity.noContent().build();
-    }
+   
 }

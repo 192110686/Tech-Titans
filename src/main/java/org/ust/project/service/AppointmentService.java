@@ -202,7 +202,7 @@ boolean alreadyBooked = appointmentRepository
 
         // Check if the new time is available (we'll add the availability check here)
         appointment.setAppointmentDateTime(newDateTime);
-        appointment.setStatus(org.ust.project.model.AppointmentStatus.RESCHEDULED.toString()); // Set status to RESCHEDULED
+        appointment.setStatus(" RESCHEDULED"); // Set status to RESCHEDULED
 
         appointmentRepository.save(appointment);
     }
