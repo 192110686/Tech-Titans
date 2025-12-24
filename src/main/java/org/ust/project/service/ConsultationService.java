@@ -103,6 +103,9 @@ public class ConsultationService {
         AppointmentResponseDTO appointmentDTO = new AppointmentResponseDTO(
                 appointment.getId(),
                 appointment.getAppointmentDate(),
+                appointment.getReasonForVisit(),
+                appointment.getStatus(),
+                appointment.getTimeSlot(),
                 new DoctorResponseDTO(
                         appointment.getDoctor().getId(),
                         appointment.getDoctor().getFirstName(),
@@ -121,16 +124,18 @@ public class ConsultationService {
                         appointment.getPatient().getBloodGroup()
                 )
         );
-
+        
         BillResponseDTO billDTO = consultation.getBill() != null
                 ? new BillResponseDTO(
                         consultation.getBill().getId(),
                         consultation.getBill().getIssueDate(),
                         consultation.getBill().getTotalAmount(),
                         consultation.getBill().getPaymentStatus(),
-                        consultation.getBill().getDueDate()
+                        consultation.getBill().getDueDate(),
+                        null   // ❗ IMPORTANT: avoid circular reference
                 )
                 : null;
+
 
         PrescriptionResponseDTO prescriptionDTO = consultation.getPrescription() != null
                 ? new PrescriptionResponseDTO(
@@ -160,7 +165,8 @@ public class ConsultationService {
                 consultation.getNotes(),
                 appointmentDTO,
                 billDTO,
-                prescriptionDTO
+                prescriptionDTO,
+                consultation.getConsultationStatus()
         );
     }
 }
