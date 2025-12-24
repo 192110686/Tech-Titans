@@ -18,7 +18,6 @@ import org.ust.project.model.Prescription;
 import org.ust.project.repo.ConsultationRepository;
 import org.ust.project.repo.InventoryItemRepository;
 import org.ust.project.repo.PrescriptionRepository;
-
 @Service
 @Transactional
 public class PrescriptionService {
@@ -56,16 +55,56 @@ public class PrescriptionService {
         // 🔗 Maintain bidirectional consistency
         consultation.setPrescription(saved);
 
-        // 🔥 Update inventory stock and handle partial fulfillment if needed
+        // 🔥 Update inventory stock and calculate prescription amount
         try {
-            updateInventoryStockAndReturnBillAmount(saved);
+            updateInventoryStockAndCalculateTotalPrice(saved);
         } catch (PartialStockFulfilledException ex) {
             // DO NOT rollback the transaction, as bill and inventory are already updated
-            // Log or handle exception based on the requirements
             return toResponseDTO(saved);
         }
 
         return toResponseDTO(saved);
+    }
+
+    /* ================= INVENTORY UPDATE AND CALCULATE PRESCRIPTION PRICE ================= */
+    private void updateInventoryStockAndCalculateTotalPrice(Prescription prescription) {
+        double totalPrice = 0.0;
+
+        for (InventoryItem item : prescription.getInventoryItems()) {
+            InventoryItem stockItem = inventoryItemRepository.findById(item.getId())
+                    .orElseThrow(() -> new InventoryItemNotFoundException(item.getId()));
+
+            double prescribedQty = item.getQuantity();
+            double availableQty = stockItem.getQuantity();
+
+            if (availableQty <= 0) {
+                throw new PartialStockFulfilledException(
+                        "No stock available for " + item.getItemName()
+                );
+            }
+
+            if (prescribedQty > availableQty) {
+                // 🔹 Partial fulfillment
+                item.setQuantity(availableQty);        // Bill only for available qty
+                stockItem.setQuantity(0.0);               // Inventory becomes zero
+                totalPrice += stockItem.getUnitPrice() * availableQty;
+
+                inventoryItemRepository.save(stockItem);
+
+                throw new PartialStockFulfilledException(
+                        "Only " + availableQty + " units of "
+                        + item.getItemName() + " available. Billed partially."
+                );
+            }
+
+            // 🔹 Full fulfillment
+            stockItem.setQuantity(availableQty - prescribedQty);
+            inventoryItemRepository.save(stockItem);
+            totalPrice += stockItem.getUnitPrice() * prescribedQty;  // Add the total price for each item
+        }
+
+        // Set the calculated total price for the prescription
+        prescription.setPrice(totalPrice);
     }
 
     /* ================= GET BY ID ================= */
@@ -114,44 +153,6 @@ public class PrescriptionService {
         prescriptionRepository.delete(prescription);
     }
 
-    /* ================= INVENTORY UPDATE ================= */
-    private void updateInventoryStockAndReturnBillAmount(Prescription prescription) {
-
-        for (InventoryItem item : prescription.getInventoryItems()) {
-
-            InventoryItem stockItem = inventoryItemRepository.findById(item.getId())
-                    .orElseThrow(() ->
-                            new InventoryItemNotFoundException(item.getId()));
-
-            double prescribedQty = item.getQuantity();
-            double availableQty = stockItem.getQuantity();
-
-            if (availableQty <= 0) {
-                throw new PartialStockFulfilledException(
-                        "No stock available for " + item.getItemName()
-                );
-            }
-
-            if (prescribedQty > availableQty) {
-
-                // 🔹 Partial fulfillment
-                item.setQuantity(availableQty);        // Bill only for available qty
-                stockItem.setQuantity(0.0);               // Inventory becomes zero
-
-                inventoryItemRepository.save(stockItem);
-
-                throw new PartialStockFulfilledException(
-                        "Only " + availableQty + " units of "
-                        + item.getItemName() + " available. Billed partially."
-                );
-            }
-
-            // 🔹 Full fulfillment
-            stockItem.setQuantity(availableQty - prescribedQty);
-            inventoryItemRepository.save(stockItem);
-        }
-    }
-
     /* ================= DTO MAPPER ================= */
     private PrescriptionResponseDTO toResponseDTO(Prescription prescription) {
 
@@ -172,7 +173,7 @@ public class PrescriptionService {
                 prescription.getId(),
                 prescription.getMedicationName(),
                 prescription.getDosageMg(),
-                prescription.getPrice(),
+                prescription.getPrice(),  // This now holds the total price
                 prescription.getFrequency(),
                 prescription.getStartDate(),
                 prescription.getEndDate(),

@@ -1,17 +1,23 @@
 package org.ust.project.service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.ust.project.dto.*;
+import org.ust.project.dto.AppointmentResponseDTO;
+import org.ust.project.dto.BillResponseDTO;
+import org.ust.project.dto.ConsultationResponseDTO;
+import org.ust.project.dto.DoctorResponseDTO;
+import org.ust.project.dto.PatientResponseDTO;
 import org.ust.project.exception.BillNotFoundException;
 import org.ust.project.exception.ConsultationNotFoundException;
-import org.ust.project.model.*;
+import org.ust.project.model.Appointment;
+import org.ust.project.model.Bill;
+import org.ust.project.model.Consultation;
+import org.ust.project.model.Prescription;
 import org.ust.project.repo.BillRepository;
 import org.ust.project.repo.ConsultationRepository;
 
@@ -25,78 +31,66 @@ public class BillService {
     @Autowired
     private ConsultationRepository consultationRepository;
 
-    /* ================= CREATE ================= */
-    public BillResponseDTO createBill(BillRequestDTO dto) {
+    /* ================= CREATE BILL ================= */
+    public BillResponseDTO createBill(Long consultationId) {
 
-        Consultation consultation = consultationRepository.findById(dto.getConsultationId())
-                .orElseThrow(() -> new ConsultationNotFoundException(dto.getConsultationId()));
+        Consultation consultation = consultationRepository.findById(consultationId)
+                .orElseThrow(() -> new ConsultationNotFoundException(consultationId));
+
+        // Calculate total amount (consultation fee + prescription fee)
+        double totalAmount = 300.0; // Fixed consultation fee
+
+        if (consultation.getPrescription() != null) {
+            totalAmount += calculatePrescriptionAmount(consultation.getPrescription());
+        }
 
         Bill bill = new Bill();
-        bill.setIssueDate(dto.getIssueDate());
-        bill.setTotalAmount(dto.getTotalAmount());
-        bill.setDueDate(dto.getDueDate());
+        bill.setIssueDate(LocalDate.now());
+        bill.setDueDate(LocalDate.now().plusDays(30));  // Bill due date is 30 days from today
+        bill.setTotalAmount(totalAmount);
         bill.setPaymentStatus("UNPAID");
         bill.setConsultation(consultation);
-
-        // bidirectional safety
-        consultation.setBill(bill);
 
         Bill savedBill = billRepository.save(bill);
 
         return toResponseDTO(savedBill);
     }
 
-    /* ================= GET BY ID ================= */
-    public BillResponseDTO getBillById(Long id) {
+    /* ================= CALCULATE PRESCRIPTION AMOUNT ================= */
+    private double calculatePrescriptionAmount(Prescription prescription) {
+        double prescriptionAmount = 0.0;
 
+        // Sum up the cost of all inventory items in the prescription
+        for (var item : prescription.getInventoryItems()) {
+            prescriptionAmount += item.getUnitPrice() * item.getQuantity();
+        }
+
+        return prescriptionAmount;
+    }
+
+    /* ================= GET BILL BY ID ================= */
+    public BillResponseDTO getBillById(Long id) {
         Bill bill = billRepository.findById(id)
                 .orElseThrow(() -> new BillNotFoundException(id));
 
         return toResponseDTO(bill);
     }
 
-    /* ================= GET ALL ================= */
+    /* ================= GET ALL BILLS ================= */
     public List<BillResponseDTO> getAllBills() {
-
         return billRepository.findAll()
                 .stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    /* ================= UPDATE ================= */
-    public BillResponseDTO updateBill(Long id, BillRequestDTO dto) {
-
-        Bill bill = billRepository.findById(id)
-                .orElseThrow(() -> new BillNotFoundException(id));
-
-        bill.setIssueDate(dto.getIssueDate());
-        bill.setTotalAmount(dto.getTotalAmount());
-        bill.setDueDate(dto.getDueDate());
-
-        Bill updatedBill = billRepository.save(bill);
-
-        return toResponseDTO(updatedBill);
-    }
-
-    /* ================= DELETE ================= */
-    public void deleteBill(Long id) {
-
-        Bill bill = billRepository.findById(id)
-                .orElseThrow(() -> new BillNotFoundException(id));
-
-        billRepository.delete(bill);
-    }
+   
+   
 
     /* ================= DTO MAPPER ================= */
     private BillResponseDTO toResponseDTO(Bill bill) {
-
-        Consultation consultation = bill.getConsultation();
+         Consultation consultation = bill.getConsultation();
         Appointment appointment = consultation.getAppointment();
-
-        // Extract time from LocalDateTime (appointmentDateTime)
-        String timeSlot = appointment.getAppointmentDateTime().format(DateTimeFormatter.ofPattern("HH:mm"));
-
         return new BillResponseDTO(
                 bill.getId(),
                 bill.getIssueDate(),
@@ -113,7 +107,6 @@ public class BillService {
                                 appointment.getAppointmentDateTime(),
                                 appointment.getReasonForVisit(),
                                 appointment.getStatus(),
-                                timeSlot, // Use the formatted time here
                                 new DoctorResponseDTO(
                                         appointment.getDoctor().getId(),
                                         appointment.getDoctor().getFirstName(),

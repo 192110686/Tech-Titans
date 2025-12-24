@@ -1,12 +1,11 @@
 package org.ust.project.repo;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.ust.project.model.Appointment;
 import org.ust.project.model.Doctor;
-
-import java.util.List;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {

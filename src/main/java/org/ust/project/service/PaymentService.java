@@ -100,7 +100,7 @@ public class PaymentService {
         Appointment appointment = consultation.getAppointment();
 
         // Use appointmentDateTime (no getTimeSlot() anymore)
-        String timeSlot = appointment.getAppointmentDateTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+       // String timeSlot = appointment.getAppointmentDateTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
 
         return new PaymentResponseDTO(
                 payment.getId(),
@@ -123,7 +123,7 @@ public class PaymentService {
                                         appointment.getAppointmentDateTime(),
                                         appointment.getReasonForVisit(),
                                         appointment.getStatus(),
-                                        timeSlot,  // Replace with formatted time (appointmentDateTime)
+                                        // Replace with formatted time (appointmentDateTime)
                                         new DoctorResponseDTO(
                                                 appointment.getDoctor().getId(),
                                                 appointment.getDoctor().getFirstName(),

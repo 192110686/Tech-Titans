@@ -194,7 +194,10 @@ public class AppointmentService {
 
         // Check availability of the new time (you can implement availability check here as well)
         appointment.setAppointmentDateTime(newDateTime);
+
         appointment.setStatus("RESCHEDULED");
+ // Set status to RESCHEDULED
+
 
         appointmentRepository.save(appointment);
     }
