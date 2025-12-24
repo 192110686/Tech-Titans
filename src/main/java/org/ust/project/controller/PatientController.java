@@ -2,15 +2,18 @@ package org.ust.project.controller;
 
 import java.util.List;
 
-import org.ust.project.dto.PatientRequestDTO;
-import org.ust.project.dto.PatientResponseDTO;
-import org.ust.project.service.PatientService;
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.ust.project.dto.PatientRequestDTO;
+import org.ust.project.dto.PatientResponseDTO;
+import org.ust.project.service.PatientService;
+
 @RestController
-@RequestMapping("/api/patients")
+@RequestMapping("/patients")
 public class PatientController {
 
     private final PatientService patientService;
@@ -22,12 +25,14 @@ public class PatientController {
     /* ================= CREATE ================= */
     @PostMapping
     public ResponseEntity<PatientResponseDTO> createPatient(
-            @RequestBody PatientRequestDTO requestDTO) {
+            @Valid @RequestBody PatientRequestDTO requestDTO) {
 
         PatientResponseDTO response =
                 patientService.createPatient(requestDTO);
 
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
     /* ================= GET ALL ================= */
@@ -42,14 +47,16 @@ public class PatientController {
     public ResponseEntity<PatientResponseDTO> getPatientById(
             @PathVariable Long id) {
 
-        return ResponseEntity.ok(patientService.getPatientById(id));
+        return ResponseEntity.ok(
+                patientService.getPatientById(id)
+        );
     }
 
     /* ================= UPDATE ================= */
     @PutMapping("/{id}")
     public ResponseEntity<PatientResponseDTO> updatePatient(
             @PathVariable Long id,
-            @RequestBody PatientRequestDTO requestDTO) {
+            @Valid @RequestBody PatientRequestDTO requestDTO) {
 
         return ResponseEntity.ok(
                 patientService.updatePatient(id, requestDTO)

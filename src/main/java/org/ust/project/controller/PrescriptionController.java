@@ -2,16 +2,12 @@ package org.ust.project.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import org.ust.project.dto.PrescriptionRequestDTO;
 import org.ust.project.dto.PrescriptionResponseDTO;
 import org.ust.project.service.PrescriptionService;
@@ -21,34 +17,61 @@ import org.ust.project.service.PrescriptionService;
 @CrossOrigin
 public class PrescriptionController {
 
-    @Autowired
-    private PrescriptionService prescriptionService;
+    private final PrescriptionService prescriptionService;
 
-    // CREATE PRESCRIPTION
+    public PrescriptionController(PrescriptionService prescriptionService) {
+        this.prescriptionService = prescriptionService;
+    }
+
+    /* ================= CREATE ================= */
     @PostMapping
-    public ResponseEntity<PrescriptionResponseDTO> create(@RequestBody PrescriptionRequestDTO dto) {
-        PrescriptionResponseDTO response = prescriptionService.createPrescription(dto);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<PrescriptionResponseDTO> createPrescription(
+            @Valid @RequestBody PrescriptionRequestDTO dto) {
+
+        PrescriptionResponseDTO response =
+                prescriptionService.createPrescription(dto);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
-    // GET PRESCRIPTION BY ID
+    /* ================= GET BY ID ================= */
     @GetMapping("/{id}")
-    public ResponseEntity<PrescriptionResponseDTO> getById(@PathVariable Long id) {
-        PrescriptionResponseDTO response = prescriptionService.getPrescriptionById(id);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<PrescriptionResponseDTO> getPrescriptionById(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                prescriptionService.getPrescriptionById(id)
+        );
     }
 
-    // GET ALL PRESCRIPTIONS
+    /* ================= GET ALL ================= */
     @GetMapping
-    public ResponseEntity<List<PrescriptionResponseDTO>> getAll() {
-        List<PrescriptionResponseDTO> response = prescriptionService.getAllPrescriptions();
-        return ResponseEntity.ok(response);
+    public ResponseEntity<List<PrescriptionResponseDTO>> getAllPrescriptions() {
+
+        return ResponseEntity.ok(
+                prescriptionService.getAllPrescriptions()
+        );
     }
 
-    // DELETE PRESCRIPTION BY ID
+    /* ================= UPDATE ================= */
+    @PutMapping("/{id}")
+    public ResponseEntity<PrescriptionResponseDTO> updatePrescription(
+            @PathVariable Long id,
+            @Valid @RequestBody PrescriptionRequestDTO dto) {
+
+        return ResponseEntity.ok(
+                prescriptionService.updatePrescription(id, dto)
+        );
+    }
+
+    /* ================= DELETE ================= */
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteById(@PathVariable Long id) {
+    public ResponseEntity<Void> deletePrescription(
+            @PathVariable Long id) {
+
         prescriptionService.deletePrescription(id);
-        return ResponseEntity.ok("Prescription deleted successfully");
+        return ResponseEntity.noContent().build();
     }
 }
