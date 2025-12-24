@@ -1,72 +1,76 @@
-package org.ust.project.controller;  // Corrected package name
+package org.ust.project.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import org.ust.project.dto.BillRequestDTO;
 import org.ust.project.dto.BillResponseDTO;
 import org.ust.project.service.BillService;
 
 @RestController
-@RequestMapping("/bills")  // Base URL for all Bill-related endpoints
+@RequestMapping("/bills")
 public class BillController {
 
     @Autowired
     private BillService billService;
 
-    // Endpoint to create a new bill
+    /* ================= CREATE ================= */
     @PostMapping
-    public ResponseEntity<BillResponseDTO> createBill(@RequestBody BillRequestDTO billRequestDTO) {
-        BillResponseDTO billResponseDTO = billService.createBill(billRequestDTO);
-        if (billResponseDTO != null) {
-            return ResponseEntity.ok(billResponseDTO);
-        }
-        return ResponseEntity.badRequest().build();  // Return 400 Bad Request if the bill creation fails
+    public ResponseEntity<BillResponseDTO> createBill(
+            @Valid @RequestBody BillRequestDTO requestDTO) {
+
+        BillResponseDTO response =
+                billService.createBill(requestDTO);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
-    // Endpoint to get a bill by ID
+    /* ================= GET BY ID ================= */
     @GetMapping("/{id}")
     public ResponseEntity<BillResponseDTO> getBillById(@PathVariable Long id) {
-        BillResponseDTO billResponseDTO = billService.getBillById(id);
-        if (billResponseDTO != null) {
-            return ResponseEntity.ok(billResponseDTO);
-        }
-        return ResponseEntity.notFound().build();  // Return 404 Not Found if the bill is not found
+
+        BillResponseDTO response =
+                billService.getBillById(id);
+
+        return ResponseEntity.ok(response);
     }
 
-    // Endpoint to get all bills
+    /* ================= GET ALL ================= */
     @GetMapping
     public ResponseEntity<List<BillResponseDTO>> getAllBills() {
-        List<BillResponseDTO> bills = billService.getAllBills();
-        return ResponseEntity.ok(bills);  // Return a list of all bills
+
+        List<BillResponseDTO> responses =
+                billService.getAllBills();
+
+        return ResponseEntity.ok(responses);
     }
 
-    // Endpoint to update a bill
+    /* ================= UPDATE ================= */
     @PutMapping("/{id}")
-    public ResponseEntity<BillResponseDTO> updateBill(@PathVariable Long id, @RequestBody BillRequestDTO billRequestDTO) {
-        BillResponseDTO billResponseDTO = billService.updateBill(id, billRequestDTO);
-        if (billResponseDTO != null) {
-            return ResponseEntity.ok(billResponseDTO);
-        }
-        return ResponseEntity.notFound().build();  // Return 404 Not Found if the bill to update is not found
+    public ResponseEntity<BillResponseDTO> updateBill(
+            @PathVariable Long id,
+            @Valid @RequestBody BillRequestDTO requestDTO) {
+
+        BillResponseDTO response =
+                billService.updateBill(id, requestDTO);
+
+        return ResponseEntity.ok(response);
     }
 
-    // Endpoint to delete a bill
+    /* ================= DELETE ================= */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBill(@PathVariable Long id) {
-        boolean deleted = billService.deleteBill(id);
-        if (deleted) {
-            return ResponseEntity.noContent().build();  // Return 204 No Content if the bill is deleted
-        }
-        return ResponseEntity.notFound().build();  // Return 404 Not Found if the bill is not found
+
+        billService.deleteBill(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

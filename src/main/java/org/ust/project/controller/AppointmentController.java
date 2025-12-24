@@ -1,72 +1,77 @@
-package org.ust.project.controller;  // Corrected package name
+package org.ust.project.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import org.ust.project.dto.AppointmentRequestDTO;
 import org.ust.project.dto.AppointmentResponseDTO;
 import org.ust.project.service.AppointmentService;
 
 @RestController
-@RequestMapping("/appointments")  // Base URL for appointment-related endpoints
+@RequestMapping("/appointments")
 public class AppointmentController {
 
     @Autowired
     private AppointmentService appointmentService;
 
-    // Endpoint to create a new appointment
+    /* ================= CREATE ================= */
     @PostMapping
-    public ResponseEntity<AppointmentResponseDTO> createAppointment(@RequestBody AppointmentRequestDTO appointmentRequestDTO) {
-        AppointmentResponseDTO appointmentResponseDTO = appointmentService.createAppointment(appointmentRequestDTO);
-        if (appointmentResponseDTO != null) {
-            return ResponseEntity.ok(appointmentResponseDTO);
-        }
-        return ResponseEntity.badRequest().build();  // Return a bad request if the appointment is not created
+    public ResponseEntity<AppointmentResponseDTO> createAppointment(
+            @Valid @RequestBody AppointmentRequestDTO requestDTO) {
+
+        AppointmentResponseDTO response =
+                appointmentService.createAppointment(requestDTO);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
-    // Endpoint to get an appointment by its ID
+    /* ================= GET BY ID ================= */
     @GetMapping("/{id}")
-    public ResponseEntity<AppointmentResponseDTO> getAppointmentById(@PathVariable Long id) {
-        AppointmentResponseDTO appointmentResponseDTO = appointmentService.getAppointmentById(id);
-        if (appointmentResponseDTO != null) {
-            return ResponseEntity.ok(appointmentResponseDTO);
-        }
-        return ResponseEntity.notFound().build();  // Return a 404 if the appointment is not found
+    public ResponseEntity<AppointmentResponseDTO> getAppointmentById(
+            @PathVariable Long id) {
+
+        AppointmentResponseDTO response =
+                appointmentService.getAppointmentById(id);
+
+        return ResponseEntity.ok(response);
     }
 
-    // Endpoint to get all appointments
+    /* ================= GET ALL ================= */
     @GetMapping
     public ResponseEntity<List<AppointmentResponseDTO>> getAllAppointments() {
-        List<AppointmentResponseDTO> appointments = appointmentService.getAllAppointments();
-        return ResponseEntity.ok(appointments);  // Return a list of appointments
+
+        List<AppointmentResponseDTO> responses =
+                appointmentService.getAllAppointments();
+
+        return ResponseEntity.ok(responses);
     }
 
-    // Endpoint to update an appointment
+    /* ================= UPDATE ================= */
     @PutMapping("/{id}")
-    public ResponseEntity<AppointmentResponseDTO> updateAppointment(@PathVariable Long id, @RequestBody AppointmentRequestDTO appointmentRequestDTO) {
-        AppointmentResponseDTO appointmentResponseDTO = appointmentService.updateAppointment(id, appointmentRequestDTO);
-        if (appointmentResponseDTO != null) {
-            return ResponseEntity.ok(appointmentResponseDTO);
-        }
-        return ResponseEntity.notFound().build();  // Return a 404 if the appointment is not found
+    public ResponseEntity<AppointmentResponseDTO> updateAppointment(
+            @PathVariable Long id,
+            @Valid @RequestBody AppointmentRequestDTO requestDTO) {
+
+        AppointmentResponseDTO response =
+                appointmentService.updateAppointment(id, requestDTO);
+
+        return ResponseEntity.ok(response);
     }
 
-    // Endpoint to delete an appointment
+    /* ================= DELETE ================= */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAppointment(@PathVariable Long id) {
-        boolean deleted = appointmentService.deleteAppointment(id);
-        if (deleted) {
-            return ResponseEntity.noContent().build();  // Return 204 No Content on successful deletion
-        }
-        return ResponseEntity.notFound().build();  // Return a 404 if the appointment is not found
+
+        appointmentService.deleteAppointment(id);
+
+        return ResponseEntity.noContent().build();
     }
 }
