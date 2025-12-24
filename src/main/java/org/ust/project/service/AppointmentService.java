@@ -3,7 +3,6 @@ package org.ust.project.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.ust.project.dto.AppointmentRequestDTO;
@@ -52,15 +51,12 @@ public class AppointmentService {
         Patient patient = patientRepository.findById(dto.getPatientId())
                 .orElseThrow(() -> new PatientEntityNotFoundException(dto.getPatientId()));
 
-
-// Prevent double booking
+        // Prevent double booking
         boolean alreadyBooked = appointmentRepository
                 .existsByDoctorIdAndAppointmentDateTime(
                         doctor.getId(),
                         dto.getAppointmentDateTime()
                 );
-
-
 
         if (alreadyBooked) {
             throw new IllegalStateException("Doctor is already booked for this time slot");
@@ -69,10 +65,10 @@ public class AppointmentService {
         // Create a new appointment and set the necessary fields
         Appointment appointment = new Appointment();
         appointment.setDoctor(doctor);
-        appointment.setPatient(patient);  // Set the fetched Patient entity
-        appointment.setAppointmentDateTime(dto.getAppointmentDateTime()); // Use LocalDateTime
+        appointment.setPatient(patient);
+        appointment.setAppointmentDateTime(dto.getAppointmentDateTime());
         appointment.setReasonForVisit(dto.getReasonForVisit());
-        appointment.setStatus(dto.getStatus()); // SCHEDULED / CANCELLED / COMPLETED
+        appointment.setStatus("SCHEDULED"); // Default status as String
 
         // Save the appointment and return the response
         return toResponseDTO(appointmentRepository.save(appointment));
@@ -110,8 +106,8 @@ public class AppointmentService {
 
         // Update appointment fields
         appointment.setDoctor(doctor);
-        appointment.setPatient(patient); // Set the fetched Patient entity
-        appointment.setAppointmentDateTime(dto.getAppointmentDateTime()); // Use LocalDateTime
+        appointment.setPatient(patient);
+        appointment.setAppointmentDateTime(dto.getAppointmentDateTime());
         appointment.setReasonForVisit(dto.getReasonForVisit());
         appointment.setStatus(dto.getStatus());
 
@@ -127,21 +123,20 @@ public class AppointmentService {
         appointmentRepository.delete(appointment);
     }
 
-    /* ========================== Doctor Availability ========================= */
+    /* ================= Doctor Availability ================= */
     // Method to check if the doctor is available at the requested time
-   public boolean checkDoctorAvailability(Long doctorId, LocalDateTime requestedTime) {
-    // Fetch the Doctor entity directly using the DoctorRepository (no need to rely on DoctorDTO)
-    Doctor doctor = doctorRepository.findById(doctorId)
-            .orElseThrow(() -> new DoctorEntityNotFoundException(doctorId)); // Use DoctorRepository to fetch entity
+    public boolean checkDoctorAvailability(Long doctorId, LocalDateTime requestedTime) {
+        // Fetch the Doctor entity
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new DoctorEntityNotFoundException(doctorId));
 
-    // Check if the doctor already has an appointment at the requested time
-    List<Appointment> existingAppointments = appointmentRepository
-            .findByDoctorAndAppointmentDateTime(doctor, requestedTime);
+        // Check if the doctor already has an appointment at the requested time
+        List<Appointment> existingAppointments = appointmentRepository
+                .findByDoctorAndAppointmentDateTime(doctor, requestedTime);
 
-    // If no appointments, doctor is available
-    return existingAppointments.isEmpty();
-}
-
+        // If no appointments, doctor is available
+        return existingAppointments.isEmpty();
+    }
 
     /* ============================ Book the Appointment if Doctor is Available =================== */
     public String bookAppointment(AppointmentRequestDTO appointmentRequest) {
@@ -149,70 +144,66 @@ public class AppointmentService {
         boolean isAvailable = checkDoctorAvailability(appointmentRequest.getDoctorId(), appointmentRequest.getAppointmentDateTime());
 
         if (!isAvailable) {
-            // If the doctor is not available, get the available time slots
+            // If doctor is not available, get available time slots
             List<LocalDateTime> availableSlots = doctorService.getAvailableSlots(
                     appointmentRequest.getDoctorId(),
                     appointmentRequest.getAppointmentDateTime().minusHours(1),
                     appointmentRequest.getAppointmentDateTime().plusHours(1)
             );
 
-            // Return the available slots to the patient
+            // Return available slots to the patient
             return "Doctor is not available at the requested time. Available slots: " + availableSlots.toString();
         }
 
-        // If the doctor is available, proceed to book the appointment
+        // Proceed to book the appointment
         Appointment appointment = new Appointment();
 
-        // Fetch the Patient and Doctor from the database using their IDs
+        // Fetch Patient and Doctor from DB
         Patient patient = patientRepository.findById(appointmentRequest.getPatientId())
                 .orElseThrow(() -> new PatientEntityNotFoundException(appointmentRequest.getPatientId()));
 
         Doctor doctor = doctorRepository.findById(appointmentRequest.getDoctorId())
                 .orElseThrow(() -> new DoctorEntityNotFoundException(appointmentRequest.getDoctorId()));
 
-        // Set the Patient and Doctor in the Appointment
+        // Set patient, doctor, and other fields
         appointment.setPatient(patient);
         appointment.setDoctor(doctor);
+        appointment.setAppointmentDateTime(appointmentRequest.getAppointmentDateTime()); // Set time
+        appointment.setStatus("SCHEDULED"); // Set status to SCHEDULED
 
-        // Set the rest of the fields
-        appointment.setAppointmentDateTime(appointmentRequest.getAppointmentDateTime()); // Set LocalDateTime
-        appointment.setStatus("SCHEDULED"); // Default status is SCHEDULED
-
-        // Save the appointment to the repository
         appointmentRepository.save(appointment);
 
         return "Appointment booked successfully!";
     }
 
-    // Update status of the appointment (e.g., when consultation starts or completes)
-   public void updateAppointmentStatus(Long appointmentId, AppointmentStatus status) {
+    // Update the appointment status
+    public void updateAppointmentStatus(Long appointmentId, String status) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        // Convert the AppointmentStatus enum to String before setting
-        appointment.setStatus(status.toString()); // Convert enum to string
+        // Set the status as a string
+        appointment.setStatus(status);
 
         appointmentRepository.save(appointment);
     }
 
-    // Reschedule an appointment by changing the appointment date/time and status
-     public void rescheduleAppointment(Long appointmentId, LocalDateTime newDateTime) {
+    // Reschedule appointment by updating time and status
+    public void rescheduleAppointment(Long appointmentId, LocalDateTime newDateTime) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        // Check if the new time is available (we'll add the availability check here)
+        // Check availability of the new time (you can implement availability check here as well)
         appointment.setAppointmentDateTime(newDateTime);
-        appointment.setStatus(org.ust.project.model.AppointmentStatus.RESCHEDULED.toString()); // Set status to RESCHEDULED
+        appointment.setStatus("RESCHEDULED");
 
         appointmentRepository.save(appointment);
     }
-
 
     /* ================= DTO MAPPER ================= */
     private AppointmentResponseDTO toResponseDTO(Appointment appointment) {
         return new AppointmentResponseDTO(
                 appointment.getId(),
-                appointment.getAppointmentDateTime(), // Use appointmentDateTime here
+                appointment.getAppointmentDateTime(),
                 appointment.getReasonForVisit(),
                 appointment.getStatus(),
                 new DoctorResponseDTO(
@@ -220,7 +211,7 @@ public class AppointmentService {
                         appointment.getDoctor().getFirstName(),
                         appointment.getDoctor().getLastName(),
                         appointment.getDoctor().getSpecialization(),
-                        appointment.getDoctor().getAvailabilitySchedule()
+                        appointment.getDoctor().getAvailableSchedule()
                 ),
                 new PatientResponseDTO(
                         appointment.getPatient().getId(),

@@ -1,11 +1,13 @@
 package org.ust.project.model;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -40,7 +42,8 @@ public class Doctor {
     private Long contactNumber;
     private String email;
     private String licenseNumber;
-    private String availabilitySchedule;
+     @ElementCollection
+    private List<LocalDateTime> availableSchedule;
 
     // Relationship: One doctor can have many appointments
     @OneToMany(mappedBy = "doctor", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)

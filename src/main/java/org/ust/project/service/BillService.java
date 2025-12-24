@@ -119,7 +119,7 @@ public class BillService {
                                         appointment.getDoctor().getFirstName(),
                                         appointment.getDoctor().getLastName(),
                                         appointment.getDoctor().getSpecialization(),
-                                        appointment.getDoctor().getAvailabilitySchedule()
+                                        appointment.getDoctor().getAvailableSchedule()
                                 ),
                                 new PatientResponseDTO(
                                         appointment.getPatient().getId(),

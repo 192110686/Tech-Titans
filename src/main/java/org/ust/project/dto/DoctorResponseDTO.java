@@ -1,5 +1,8 @@
 package org.ust.project.dto;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,6 +24,6 @@ public class DoctorResponseDTO {
 
     private String specialization;
 
-    private String availabilitySchedule;
+    private List<LocalDateTime> availabilitySchedule;
 
 }

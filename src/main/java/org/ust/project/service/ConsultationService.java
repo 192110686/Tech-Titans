@@ -121,7 +121,7 @@ public class ConsultationService {
                         appt.getDoctor().getFirstName(),
                         appt.getDoctor().getLastName(),
                         appt.getDoctor().getSpecialization(),
-                        appt.getDoctor().getAvailabilitySchedule()
+                        appt.getDoctor().getAvailableSchedule()
                 ),
                 new PatientResponseDTO(
                         appt.getPatient().getId(),
