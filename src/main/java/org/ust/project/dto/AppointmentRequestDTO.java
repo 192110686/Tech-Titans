@@ -1,6 +1,7 @@
 package org.ust.project.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,7 +15,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class AppointmentRequestDTO {
-    private LocalDate appointmentDate;
+    private LocalDateTime appointmentDateTime;
     private String timeSlot;
     private String reasonForVisit;
     private String status;

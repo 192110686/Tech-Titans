@@ -1,21 +1,15 @@
 package org.ust.project.service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.ust.project.dto.AppointmentResponseDTO;
-import org.ust.project.dto.BillResponseDTO;
-import org.ust.project.dto.ConsultationRequestDTO;
-import org.ust.project.dto.ConsultationResponseDTO;
-import org.ust.project.dto.DoctorResponseDTO;
-import org.ust.project.dto.PatientResponseDTO;
-import org.ust.project.dto.PrescriptionResponseDTO;
+import org.ust.project.dto.*;
 import org.ust.project.exception.AppointmentNotFoundException;
 import org.ust.project.exception.ConsultationNotFoundException;
-import org.ust.project.model.Appointment;
-import org.ust.project.model.Consultation;
+import org.ust.project.model.*;
 import org.ust.project.repo.AppointmentRepository;
 import org.ust.project.repo.ConsultationRepository;
 
@@ -100,12 +94,15 @@ public class ConsultationService {
 
         Appointment appointment = consultation.getAppointment();
 
+        // Extract time from LocalDateTime (appointmentDateTime)
+        String timeSlot = appointment.getAppointmentDateTime().format(DateTimeFormatter.ofPattern("HH:mm")); // Extract time
+
         AppointmentResponseDTO appointmentDTO = new AppointmentResponseDTO(
                 appointment.getId(),
-                appointment.getAppointmentDate(),
+                appointment.getAppointmentDateTime(),
                 appointment.getReasonForVisit(),
                 appointment.getStatus(),
-                appointment.getTimeSlot(),
+                timeSlot,  // Now using formatted time
                 new DoctorResponseDTO(
                         appointment.getDoctor().getId(),
                         appointment.getDoctor().getFirstName(),
@@ -124,7 +121,8 @@ public class ConsultationService {
                         appointment.getPatient().getBloodGroup()
                 )
         );
-        
+
+        // If there's a bill associated with the consultation
         BillResponseDTO billDTO = consultation.getBill() != null
                 ? new BillResponseDTO(
                         consultation.getBill().getId(),
@@ -132,11 +130,11 @@ public class ConsultationService {
                         consultation.getBill().getTotalAmount(),
                         consultation.getBill().getPaymentStatus(),
                         consultation.getBill().getDueDate(),
-                        null   // ❗ IMPORTANT: avoid circular reference
+                        null   // Avoid circular reference
                 )
                 : null;
 
-
+        // If there's a prescription associated with the consultation
         PrescriptionResponseDTO prescriptionDTO = consultation.getPrescription() != null
                 ? new PrescriptionResponseDTO(
                         consultation.getPrescription().getId(),

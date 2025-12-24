@@ -1,6 +1,7 @@
 package org.ust.project.model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -20,7 +21,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
 @Entity
 @Table(name = "appointments")
 @Getter
@@ -34,8 +34,7 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDate appointmentDate;
-    private String timeSlot;
+    private LocalDateTime appointmentDateTime; // Changed to LocalDateTime to hold both date and time
     private String status;
     private String reasonForVisit;
 
@@ -54,4 +53,14 @@ public class Appointment {
     @OneToOne(mappedBy = "appointment",cascade = CascadeType.ALL)
     @JsonManagedReference
     private Consultation consultation;
+
+    // Getter for appointmentDateTime
+    public LocalDateTime getAppointmentDateTime() {
+        return appointmentDateTime;
+    }
+
+    // Setter for appointmentDateTime
+    public void setAppointmentDateTime(LocalDateTime appointmentDateTime) {
+        this.appointmentDateTime = appointmentDateTime;
+    }
 }
