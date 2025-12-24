@@ -3,170 +3,113 @@ package org.ust.project.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.ust.project.dto.AppointmentResponseDTO;
 import org.ust.project.dto.BillResponseDTO;
 import org.ust.project.dto.ConsultationRequestDTO;
 import org.ust.project.dto.ConsultationResponseDTO;
-import org.ust.project.dto.DoctorResponseDTO;
-import org.ust.project.dto.PatientResponseDTO;
 import org.ust.project.dto.PrescriptionResponseDTO;
-import org.ust.project.exception.AppointmentNotFoundException;
-import org.ust.project.exception.ConsultationNotFoundException;
 import org.ust.project.model.Appointment;
+import org.ust.project.model.Bill;
 import org.ust.project.model.Consultation;
+import org.ust.project.model.Prescription;
 import org.ust.project.repo.AppointmentRepository;
 import org.ust.project.repo.ConsultationRepository;
 
 @Service
-@Transactional
 public class ConsultationService {
 
-    private final ConsultationRepository consultationRepository;
-    private final AppointmentRepository appointmentRepository;
-    private final InventoryItemService inventoryItemService;
+    @Autowired
+    private ConsultationRepository consultationRepository;
 
-    public ConsultationService(
-            ConsultationRepository consultationRepository,
-            AppointmentRepository appointmentRepository,
-            InventoryItemService inventoryItemService) {
-        this.consultationRepository = consultationRepository;
-        this.appointmentRepository = appointmentRepository;
-        this.inventoryItemService = inventoryItemService;
-    }
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
-    /* ================= CREATE ================= */
-    public ConsultationResponseDTO createConsultation(ConsultationRequestDTO dto) {
+    // Create Consultation
+    public ConsultationResponseDTO createConsultation(ConsultationRequestDTO consultationRequestDTO) {
+        // Fetch the related appointment
+        Appointment appointment = appointmentRepository.findById(consultationRequestDTO.getAppointmentId())
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        Appointment appointment = appointmentRepository.findById(dto.getAppointmentId())
-                .orElseThrow(() -> new AppointmentNotFoundException(dto.getAppointmentId()));
-
+        // Create and populate the consultation entity
         Consultation consultation = new Consultation();
+        BeanUtils.copyProperties(consultationRequestDTO, consultation);
+
+        // Set the appointment relationship
         consultation.setAppointment(appointment);
-        consultation.setConsultationDate(dto.getConsultationDate());
-        consultation.setReasonForVisit(dto.getReasonForVisit());
-        consultation.setNotes(dto.getNotes());
 
-        Consultation saved = consultationRepository.save(consultation);
+        // Save the consultation in the database
+        consultation = consultationRepository.save(consultation);
 
-        return toResponseDTO(saved);
+        // Convert entity to DTO and return
+        return convertToDTO(consultation);
     }
 
-    /* ================= GET BY ID ================= */
+    // Update Consultation
+    public ConsultationResponseDTO updateConsultation(Long id, ConsultationRequestDTO consultationRequestDTO) {
+        Consultation existingConsultation = consultationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Consultation not found"));
+
+        // Update properties
+        BeanUtils.copyProperties(consultationRequestDTO, existingConsultation, "id"); // Skip 'id' property while updating
+        existingConsultation = consultationRepository.save(existingConsultation);
+
+        return convertToDTO(existingConsultation);
+    }
+
+    // Get Consultation by ID
     public ConsultationResponseDTO getConsultationById(Long id) {
-
         Consultation consultation = consultationRepository.findById(id)
-                .orElseThrow(() -> new ConsultationNotFoundException(id));
-
-        return toResponseDTO(consultation);
+                .orElseThrow(() -> new RuntimeException("Consultation not found"));
+        return convertToDTO(consultation);
     }
 
-    /* ================= GET ALL ================= */
+    // Get All Consultations
     public List<ConsultationResponseDTO> getAllConsultations() {
-
-        return consultationRepository.findAll()
-                .stream()
-                .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+        List<Consultation> consultations = consultationRepository.findAll();
+        return consultations.stream()
+                            .map(this::convertToDTO)
+                            .collect(Collectors.toList());
     }
 
-    /* ================= UPDATE ================= */
-    public ConsultationResponseDTO updateConsultation(Long id, ConsultationRequestDTO dto) {
-
-        Consultation consultation = consultationRepository.findById(id)
-                .orElseThrow(() -> new ConsultationNotFoundException(id));
-
-        consultation.setConsultationDate(dto.getConsultationDate());
-        consultation.setReasonForVisit(dto.getReasonForVisit());
-        consultation.setNotes(dto.getNotes());
-
-        Consultation updated = consultationRepository.save(consultation);
-
-        return toResponseDTO(updated);
-    }
-
-    /* ================= DELETE ================= */
+    // Delete Consultation
     public void deleteConsultation(Long id) {
-
         Consultation consultation = consultationRepository.findById(id)
-                .orElseThrow(() -> new ConsultationNotFoundException(id));
-
+                .orElseThrow(() -> new RuntimeException("Consultation not found"));
         consultationRepository.delete(consultation);
     }
 
-    /* ================= DTO MAPPER ================= */
-    private ConsultationResponseDTO toResponseDTO(Consultation consultation) {
+    // Convert entity to DTO
+    private ConsultationResponseDTO convertToDTO(Consultation consultation) {
+        ConsultationResponseDTO responseDTO = new ConsultationResponseDTO();
+        BeanUtils.copyProperties(consultation, responseDTO);
 
+        // Set the Appointment details in the response DTO
         Appointment appointment = consultation.getAppointment();
+        if (appointment != null) {
+            AppointmentResponseDTO appointmentResponseDTO = new AppointmentResponseDTO();
+            BeanUtils.copyProperties(appointment, appointmentResponseDTO);
+            responseDTO.setAppointment(appointmentResponseDTO);
+        }
 
-        AppointmentResponseDTO appointmentDTO = new AppointmentResponseDTO(
-                appointment.getId(),
-                appointment.getAppointmentDate(),
-                appointment.getReasonForVisit(),
-                appointment.getStatus(),
-                appointment.getTimeSlot(),
-                new DoctorResponseDTO(
-                        appointment.getDoctor().getId(),
-                        appointment.getDoctor().getFirstName(),
-                        appointment.getDoctor().getLastName(),
-                        appointment.getDoctor().getSpecialization(),
-                        appointment.getDoctor().getAvailabilitySchedule()
-                ),
-                new PatientResponseDTO(
-                        appointment.getPatient().getId(),
-                        appointment.getPatient().getFirstName(),
-                        appointment.getPatient().getLastName(),
-                        appointment.getPatient().getDateOfBirth(),
-                        appointment.getPatient().getGender(),
-                        appointment.getPatient().getPhoneNumber(),
-                        appointment.getPatient().getEmail(),
-                        appointment.getPatient().getBloodGroup()
-                )
-        );
-        
-        BillResponseDTO billDTO = consultation.getBill() != null
-                ? new BillResponseDTO(
-                        consultation.getBill().getId(),
-                        consultation.getBill().getIssueDate(),
-                        consultation.getBill().getTotalAmount(),
-                        consultation.getBill().getPaymentStatus(),
-                        consultation.getBill().getDueDate(),
-                        null   // ❗ IMPORTANT: avoid circular reference
-                )
-                : null;
+        // Set the Bill details in the response DTO
+        Bill bill = consultation.getBill();
+        if (bill != null) {
+            BillResponseDTO billResponseDTO = new BillResponseDTO();
+            BeanUtils.copyProperties(bill, billResponseDTO);
+            responseDTO.setBill(billResponseDTO);
+        }
 
+        // Set the Prescription details in the response DTO
+        Prescription prescription = consultation.getPrescription();
+        if (prescription != null) {
+            PrescriptionResponseDTO prescriptionResponseDTO = new PrescriptionResponseDTO();
+            BeanUtils.copyProperties(prescription, prescriptionResponseDTO);
+            responseDTO.setPrescription(prescriptionResponseDTO);
+        }
 
-        PrescriptionResponseDTO prescriptionDTO = consultation.getPrescription() != null
-                ? new PrescriptionResponseDTO(
-                        consultation.getPrescription().getId(),
-                        consultation.getPrescription().getMedicationName(),
-                        consultation.getPrescription().getDosageMg(),
-                        consultation.getPrescription().getPrice(),
-                        consultation.getPrescription().getFrequency(),
-                        consultation.getPrescription().getStartDate(),
-                        consultation.getPrescription().getEndDate(),
-                        consultation.getPrescription().getInventoryItems()
-                                .stream()
-                                .map(item -> new org.ust.project.dto.InventoryItemResponseDTO(
-                                        item.getId(),
-                                        item.getItemName(),
-                                        item.getCategory(),
-                                        item.getUnitPrice()
-                                ))
-                                .collect(Collectors.toList())
-                )
-                : null;
-
-        return new ConsultationResponseDTO(
-                consultation.getId(),
-                consultation.getConsultationDate(),
-                consultation.getReasonForVisit(),
-                consultation.getNotes(),
-                appointmentDTO,
-                billDTO,
-                prescriptionDTO,
-                consultation.getConsultationStatus()
-        );
+        return responseDTO;
     }
 }

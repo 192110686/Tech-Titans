@@ -46,7 +46,7 @@ public class AppointmentService {
         Patient patient = patientRepository.findById(dto.getPatientId())
                 .orElseThrow(() -> new PatientEntityNotFoundException(dto.getPatientId()));
 
-        // 🔐 Prevent double booking
+        // Prevent double booking
         boolean alreadyBooked = appointmentRepository
                 .existsByDoctorIdAndAppointmentDateAndTimeSlot(
                         doctor.getId(),
