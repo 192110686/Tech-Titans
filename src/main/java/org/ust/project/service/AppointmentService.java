@@ -53,12 +53,12 @@ public class AppointmentService {
 
 
 // Prevent double booking
-boolean alreadyBooked = appointmentRepository
-        .existsByDoctorIdAndAppointmentDateAndTimeSlot(
-                doctor.getId(),
-                dto.getAppointmentDateTime(),
-                dto.getTimeSlot()
-        );
+        boolean alreadyBooked = appointmentRepository
+                .existsByDoctorIdAndAppointmentDateTime(
+                        doctor.getId(),
+                        dto.getAppointmentDateTime()
+                );
+
 
 
         if (alreadyBooked) {

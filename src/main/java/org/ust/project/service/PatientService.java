@@ -10,20 +10,29 @@ import org.ust.project.dto.PatientRequestDTO;
 import org.ust.project.dto.PatientResponseDTO;
 import org.ust.project.exception.PatientEntityNotFoundException;
 import org.ust.project.model.Patient;
+import org.ust.project.model.User;
 import org.ust.project.repo.PatientRepository;
+import org.ust.project.repo.UserRepository;
 
 @Service
 @Transactional
 public class PatientService {
 
     private final PatientRepository patientRepository;
+    private final UserRepository userRepository;
 
-    public PatientService(PatientRepository patientRepository) {
+    public PatientService(
+            PatientRepository patientRepository,
+            UserRepository userRepository) {
         this.patientRepository = patientRepository;
+        this.userRepository = userRepository;
     }
 
     /* ================= CREATE ================= */
     public PatientResponseDTO createPatient(PatientRequestDTO dto) {
+
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Patient patient = new Patient();
         patient.setFirstName(dto.getFirstName());
@@ -37,6 +46,11 @@ public class PatientService {
         patient.setRegistrationDate(LocalDate.now());
 
         Patient savedPatient = patientRepository.save(patient);
+
+        // 🔥 CRITICAL LINKING STEP
+        user.setPatient(savedPatient);
+        userRepository.save(user);
+
         return toResponseDTO(savedPatient);
     }
 
@@ -52,7 +66,6 @@ public class PatientService {
     public PatientResponseDTO getPatientById(Long id) {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new PatientEntityNotFoundException(id));
-
         return toResponseDTO(patient);
     }
 
@@ -80,7 +93,6 @@ public class PatientService {
         Patient patient = patientRepository.findById(id)
                 .orElseThrow(() -> new PatientEntityNotFoundException(id));
 
-        // Safety check (important)
         if (patient.getAppointments() != null && !patient.getAppointments().isEmpty()) {
             throw new IllegalStateException(
                 "Cannot delete patient with existing appointments"
@@ -90,7 +102,7 @@ public class PatientService {
         patientRepository.delete(patient);
     }
 
-    /* ================= DTO CONVERSION ================= */
+    /* ================= DTO ================= */
     private PatientResponseDTO toResponseDTO(Patient patient) {
         return new PatientResponseDTO(
                 patient.getId(),

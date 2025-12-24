@@ -26,4 +26,6 @@ public class DoctorRequestDTO {
     private String licenseNumber;
 
     private String availabilitySchedule;
+    
+    private Long userId;
 }
