@@ -33,8 +33,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
     
-    @ExceptionHandler(MedicalRecordNotFoundException.class)
-    public ResponseEntity<String> handleMedicalRecordNotFound(MedicalRecordNotFoundException ex) {
+    @ExceptionHandler(ConsultationNotFoundException.class)
+    public ResponseEntity<String> handleMedicalRecordNotFound(ConsultationNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 }

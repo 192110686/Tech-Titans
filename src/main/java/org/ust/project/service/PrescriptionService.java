@@ -1,6 +1,5 @@
 package org.ust.project.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,8 +9,8 @@ import org.ust.project.dto.InventoryItemResponseDTO;
 import org.ust.project.dto.PrescriptionRequestDTO;
 import org.ust.project.dto.PrescriptionResponseDTO;
 import org.ust.project.exception.ConsultationNotFoundException;
-import org.ust.project.exception.InventoryItemNotFoundException;
 import org.ust.project.exception.InsufficientStockException;
+import org.ust.project.exception.InventoryItemNotFoundException;
 import org.ust.project.exception.PrescriptionNotFoundException;
 import org.ust.project.model.Consultation;
 import org.ust.project.model.InventoryItem;

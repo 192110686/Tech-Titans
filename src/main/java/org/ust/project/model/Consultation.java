@@ -34,7 +34,8 @@ public class Consultation {
 
     private LocalDate consultationDate;   // Date of consultation
     private String reasonForVisit;         // Reason for the visit (e.g., checkup, fever, etc.)
-    private String notes;                  // Additional notes from the consultation
+    private String notes; 
+    private String consultationStatus;// Additional notes from the consultation
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "appointment_id", nullable = false)
