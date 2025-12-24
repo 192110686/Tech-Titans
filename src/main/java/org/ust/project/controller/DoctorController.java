@@ -14,6 +14,7 @@ import org.ust.project.dto.DoctorResponseDTO;
 import org.ust.project.service.DoctorService;
 
 @RestController
+@Valid
 @RequestMapping("/doctors")
 public class DoctorController {
 

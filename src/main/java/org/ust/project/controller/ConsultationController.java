@@ -18,7 +18,7 @@ import org.ust.project.exception.ConsultationNotFoundException;
 import org.ust.project.service.ConsultationService;
 
 @RestController
-@RequestMapping("/api/consultations")
+@RequestMapping("consultations")
 public class ConsultationController {
 
     @Autowired
