@@ -114,55 +114,53 @@ public class ConsultationService {
 
         Appointment appt = consultation.getAppointment();
 
-        AppointmentResponseDTO appointmentDTO =
-                new AppointmentResponseDTO(
-                        appt.getId(),
-                        appt.getAppointmentDate(),
-                        appt.getReasonForVisit(),
-                        appt.getStatus(),
-                        appt.getTimeSlot(),
-                        new DoctorResponseDTO(
-                                appt.getDoctor().getId(),
-                                appt.getDoctor().getFirstName(),
-                                appt.getDoctor().getLastName(),
-                                appt.getDoctor().getSpecialization(),
-                                appt.getDoctor().getAvailabilitySchedule()
-                        ),
-                        new PatientResponseDTO(
-                                appt.getPatient().getId(),
-                                appt.getPatient().getFirstName(),
-                                appt.getPatient().getLastName(),
-                                appt.getPatient().getDateOfBirth(),
-                                appt.getPatient().getGender(),
-                                appt.getPatient().getPhoneNumber(),
-                                appt.getPatient().getEmail(),
-                                appt.getPatient().getBloodGroup()
-                        )
-                );
+        // Appointment mapping
+        AppointmentResponseDTO appointmentDTO = appt == null ? null : new AppointmentResponseDTO(
+                appt.getId(),
+                appt.getAppointmentDate(),
+                appt.getReasonForVisit(),
+                appt.getStatus(),
+                appt.getTimeSlot(),
+                new DoctorResponseDTO(
+                        appt.getDoctor().getId(),
+                        appt.getDoctor().getFirstName(),
+                        appt.getDoctor().getLastName(),
+                        appt.getDoctor().getSpecialization(),
+                        appt.getDoctor().getAvailabilitySchedule()
+                ),
+                new PatientResponseDTO(
+                        appt.getPatient().getId(),
+                        appt.getPatient().getFirstName(),
+                        appt.getPatient().getLastName(),
+                        appt.getPatient().getDateOfBirth(),
+                        appt.getPatient().getGender(),
+                        appt.getPatient().getPhoneNumber(),
+                        appt.getPatient().getEmail(),
+                        appt.getPatient().getBloodGroup()
+                )
+        );
 
-        BillResponseDTO billDTO =
-                consultation.getBill() == null ? null :
-                        new BillResponseDTO(
-                                consultation.getBill().getId(),
-                                consultation.getBill().getIssueDate(),
-                                consultation.getBill().getTotalAmount(),
-                                consultation.getBill().getPaymentStatus(),
-                                consultation.getBill().getDueDate(),
-                                null // avoid circular reference
-                        );
+        // Bill mapping - check if bill is null
+        BillResponseDTO billDTO = (consultation.getBill() != null) ? new BillResponseDTO(
+                consultation.getBill().getId(),
+                consultation.getBill().getIssueDate(),
+                consultation.getBill().getTotalAmount(),
+                consultation.getBill().getPaymentStatus(),
+                consultation.getBill().getDueDate(),
+                null // avoid circular reference
+        ) : null;
 
-        PrescriptionResponseDTO prescriptionDTO =
-                consultation.getPrescription() == null ? null :
-                        new PrescriptionResponseDTO(
-                                consultation.getPrescription().getId(),
-                                consultation.getPrescription().getMedicationName(),
-                                consultation.getPrescription().getDosageMg(),
-                                consultation.getPrescription().getPrice(),
-                                consultation.getPrescription().getFrequency(),
-                                consultation.getPrescription().getStartDate(),
-                                consultation.getPrescription().getEndDate(),
-                                null
-                        );
+        // Prescription mapping - check if prescription is null
+        PrescriptionResponseDTO prescriptionDTO = (consultation.getPrescription() != null) ? new PrescriptionResponseDTO(
+                consultation.getPrescription().getId(),
+                consultation.getPrescription().getMedicationName(),
+                consultation.getPrescription().getDosageMg(),
+                consultation.getPrescription().getPrice(),
+                consultation.getPrescription().getFrequency(),
+                consultation.getPrescription().getStartDate(),
+                consultation.getPrescription().getEndDate(),
+                null // avoiding circular reference
+        ) : null;
 
         return new ConsultationResponseDTO(
                 consultation.getId(),
