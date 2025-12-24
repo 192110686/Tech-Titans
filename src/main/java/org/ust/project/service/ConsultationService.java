@@ -1,23 +1,23 @@
 package org.ust.project.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.BeanUtils;
-import org.springframework.stereotype.Service;
-import org.ust.project.dto.ConsultationRequestDTO;
-import org.ust.project.dto.ConsultationResponseDTO;
-import org.ust.project.dto.AppointmentResponseDTO;
-import org.ust.project.dto.BillResponseDTO;
-import org.ust.project.dto.PrescriptionResponseDTO;
-import org.ust.project.exception.ConsultationNotFoundException;
-import org.ust.project.model.Consultation;
-import org.ust.project.model.Appointment;
-import org.ust.project.model.Bill;
-import org.ust.project.model.Prescription;
-import org.ust.project.repo.ConsultationRepository;
-import org.ust.project.repo.AppointmentRepository;
-
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.ust.project.dto.AppointmentResponseDTO;
+import org.ust.project.dto.BillResponseDTO;
+import org.ust.project.dto.ConsultationRequestDTO;
+import org.ust.project.dto.ConsultationResponseDTO;
+import org.ust.project.dto.PrescriptionResponseDTO;
+import org.ust.project.exception.ConsultationNotFoundException;
+import org.ust.project.model.Appointment;
+import org.ust.project.model.Bill;
+import org.ust.project.model.Consultation;
+import org.ust.project.model.Prescription;
+import org.ust.project.repo.AppointmentRepository;
+import org.ust.project.repo.ConsultationRepository;
 
 @Service
 public class ConsultationService {
