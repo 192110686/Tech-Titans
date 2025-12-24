@@ -20,15 +20,9 @@ public class ConsultationResponseDTO {
     private String reasonForVisit;
     private String notes;
 
-    // Always present
     private AppointmentResponseDTO appointment;
+    private BillResponseDTO bill;  // Ensure bill is present
+    private PrescriptionResponseDTO prescription;  // Ensure prescription is present
 
-    // Optional – may be null initially
-    private BillResponseDTO bill;
-
-    // Optional – may be null initially
-    private PrescriptionResponseDTO prescription;
-    
     private String consultationStatus; // COMPLETED / CANCELLED
-
 }

@@ -1,22 +1,23 @@
 package org.ust.project.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.ust.project.dto.AppointmentResponseDTO;
-import org.ust.project.dto.BillResponseDTO;
 import org.ust.project.dto.ConsultationRequestDTO;
 import org.ust.project.dto.ConsultationResponseDTO;
+import org.ust.project.dto.AppointmentResponseDTO;
+import org.ust.project.dto.BillResponseDTO;
 import org.ust.project.dto.PrescriptionResponseDTO;
+import org.ust.project.exception.ConsultationNotFoundException;
+import org.ust.project.model.Consultation;
 import org.ust.project.model.Appointment;
 import org.ust.project.model.Bill;
-import org.ust.project.model.Consultation;
 import org.ust.project.model.Prescription;
-import org.ust.project.repo.AppointmentRepository;
 import org.ust.project.repo.ConsultationRepository;
+import org.ust.project.repo.AppointmentRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ConsultationService {
@@ -31,7 +32,7 @@ public class ConsultationService {
     public ConsultationResponseDTO createConsultation(ConsultationRequestDTO consultationRequestDTO) {
         // Fetch the related appointment
         Appointment appointment = appointmentRepository.findById(consultationRequestDTO.getAppointmentId())
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+                .orElseThrow(() -> new ConsultationNotFoundException(consultationRequestDTO.getAppointmentId()));
 
         // Create and populate the consultation entity
         Consultation consultation = new Consultation();
@@ -50,7 +51,7 @@ public class ConsultationService {
     // Update Consultation
     public ConsultationResponseDTO updateConsultation(Long id, ConsultationRequestDTO consultationRequestDTO) {
         Consultation existingConsultation = consultationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Consultation not found"));
+                .orElseThrow(() -> new ConsultationNotFoundException(id));
 
         // Update properties
         BeanUtils.copyProperties(consultationRequestDTO, existingConsultation, "id"); // Skip 'id' property while updating
@@ -62,7 +63,7 @@ public class ConsultationService {
     // Get Consultation by ID
     public ConsultationResponseDTO getConsultationById(Long id) {
         Consultation consultation = consultationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Consultation not found"));
+                .orElseThrow(() -> new ConsultationNotFoundException(id));
         return convertToDTO(consultation);
     }
 
@@ -77,7 +78,7 @@ public class ConsultationService {
     // Delete Consultation
     public void deleteConsultation(Long id) {
         Consultation consultation = consultationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Consultation not found"));
+                .orElseThrow(() -> new ConsultationNotFoundException(id));
         consultationRepository.delete(consultation);
     }
 
