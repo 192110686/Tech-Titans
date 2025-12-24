@@ -9,8 +9,8 @@ import org.ust.project.dto.InventoryItemResponseDTO;
 import org.ust.project.dto.PrescriptionRequestDTO;
 import org.ust.project.dto.PrescriptionResponseDTO;
 import org.ust.project.exception.ConsultationNotFoundException;
-import org.ust.project.exception.InsufficientStockException;
 import org.ust.project.exception.InventoryItemNotFoundException;
+import org.ust.project.exception.PartialStockFulfilledException;
 import org.ust.project.exception.PrescriptionNotFoundException;
 import org.ust.project.model.Consultation;
 import org.ust.project.model.InventoryItem;
@@ -56,8 +56,14 @@ public class PrescriptionService {
         // 🔗 Maintain bidirectional consistency
         consultation.setPrescription(saved);
 
-        // 🔥 Inventory update happens ONLY ON CREATE
-        updateInventoryStock(saved);
+        // 🔥 Update inventory stock and handle partial fulfillment if needed
+        try {
+            updateInventoryStockAndReturnBillAmount(saved);
+        } catch (PartialStockFulfilledException ex) {
+            // DO NOT rollback the transaction, as bill and inventory are already updated
+            // Log or handle exception based on the requirements
+            return toResponseDTO(saved);
+        }
 
         return toResponseDTO(saved);
     }
@@ -95,7 +101,7 @@ public class PrescriptionService {
 
         Prescription updated = prescriptionRepository.save(prescription);
 
-        // ❗ Inventory is NOT re-adjusted on update
+        // Inventory is NOT adjusted on update, so skipping inventory update here
         return toResponseDTO(updated);
     }
 
@@ -109,7 +115,7 @@ public class PrescriptionService {
     }
 
     /* ================= INVENTORY UPDATE ================= */
-    private void updateInventoryStock(Prescription prescription) {
+    private void updateInventoryStockAndReturnBillAmount(Prescription prescription) {
 
         for (InventoryItem item : prescription.getInventoryItems()) {
 
@@ -117,14 +123,31 @@ public class PrescriptionService {
                     .orElseThrow(() ->
                             new InventoryItemNotFoundException(item.getId()));
 
-            if (stockItem.getQuantity() < item.getQuantity()) {
-                throw new InsufficientStockException(item.getItemName());
+            double prescribedQty = item.getQuantity();
+            double availableQty = stockItem.getQuantity();
+
+            if (availableQty <= 0) {
+                throw new PartialStockFulfilledException(
+                        "No stock available for " + item.getItemName()
+                );
             }
 
-            stockItem.setQuantity(
-                    stockItem.getQuantity() - item.getQuantity()
-            );
+            if (prescribedQty > availableQty) {
 
+                // 🔹 Partial fulfillment
+                item.setQuantity(availableQty);        // Bill only for available qty
+                stockItem.setQuantity(0.0);               // Inventory becomes zero
+
+                inventoryItemRepository.save(stockItem);
+
+                throw new PartialStockFulfilledException(
+                        "Only " + availableQty + " units of "
+                        + item.getItemName() + " available. Billed partially."
+                );
+            }
+
+            // 🔹 Full fulfillment
+            stockItem.setQuantity(availableQty - prescribedQty);
             inventoryItemRepository.save(stockItem);
         }
     }
@@ -156,5 +179,4 @@ public class PrescriptionService {
                 items
         );
     }
-
 }
