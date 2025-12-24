@@ -33,16 +33,19 @@ public class PaymentService {
         payment.setPaymentDate(dto.getPaymentDate());
         payment.setAmountPaid(dto.getAmountPaid());
         payment.setPaymentMethod(dto.getPaymentMethod());
+
+        // ✅ SET BOTH SIDES
         payment.setBill(bill);
+        bill.setPayment(payment);
 
         Payment savedPayment = paymentRepository.save(payment);
 
-        // Update bill status
         bill.setPaymentStatus("PAID");
         billRepository.save(bill);
 
         return toResponseDTO(savedPayment);
     }
+
 
     /* ================= GET BY ID ================= */
     public PaymentResponseDTO getPaymentById(Long id) {
