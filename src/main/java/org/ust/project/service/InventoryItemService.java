@@ -19,20 +19,9 @@ public class InventoryItemService {
     @Autowired
     private InventoryItemRepository inventoryItemRepository;
 
-    public void checkAndUpdateInventory(Prescription prescription) {
-        for (InventoryItem item : prescription.getInventoryItems()) {
-            // Check if the medicine is available in the inventory
-            InventoryItem inventoryItem = inventoryItemRepository.findById(item.getId())
-                    .orElseThrow(() -> new RuntimeException("Medicine not found in inventory"));
-
-            // If found, reduce the stock (quantity)
-            if (inventoryItem.getQuantity() >= item.getQuantity()) {
-                inventoryItem.setQuantity(inventoryItem.getQuantity() - item.getQuantity());  // Reduce the stock
-                inventoryItemRepository.save(inventoryItem);  // Save updated inventory item
-            } else {
-                throw new RuntimeException("Insufficient stock for medicine: " + item.getItemName());
-            }
-        }
+    // Fetch inventory items based on medication name for prescription
+    public List<InventoryItem> getInventoryItemsForPrescription(String medicationName) {
+        return inventoryItemRepository.findByItemName(medicationName);  // Modify as per your logic
     }
 
     // Create a new inventory item
@@ -67,7 +56,7 @@ public class InventoryItemService {
                     inventoryItem.getUnitPrice()
             );
         }
-        throw new InventoryItemNotFoundException(id); // Or throw an exception if you prefer
+        throw new InventoryItemNotFoundException(id);
     }
 
     // Get all inventory items
@@ -104,7 +93,7 @@ public class InventoryItemService {
                     inventoryItem.getUnitPrice()
             );
         }
-        throw new InventoryItemNotFoundException(id); // Or throw an exception if item not found
+        throw new InventoryItemNotFoundException(id);
     }
 
     // Delete inventory item
@@ -113,6 +102,6 @@ public class InventoryItemService {
             inventoryItemRepository.deleteById(id);
             return true;
         }
-        throw new InventoryItemNotFoundException(id); // Or throw an exception if item not found
+        throw new InventoryItemNotFoundException(id);
     }
 }

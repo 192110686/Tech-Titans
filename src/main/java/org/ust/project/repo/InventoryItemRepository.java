@@ -12,4 +12,6 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
     
     // Find items by category (e.g., "Surgical", "Medicine")
     List<InventoryItem> findByCategory(String category);
+
+    List<InventoryItem>findByItemName(String itemname);
 }
