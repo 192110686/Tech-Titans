@@ -37,6 +37,7 @@ public class Appointment {
     private LocalDateTime appointmentDateTime; // Changed to LocalDateTime to hold both date and time
     private String status;
     private String reasonForVisit;
+  
 
     // Relationship: Many appointments belong to one patient
     @ManyToOne(fetch = FetchType.LAZY)

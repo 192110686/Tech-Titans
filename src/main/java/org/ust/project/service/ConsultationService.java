@@ -1,28 +1,15 @@
 package org.ust.project.service;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Transactional;
 import org.ust.project.dto.*;
-
-import org.ust.project.dto.AppointmentResponseDTO;
-import org.ust.project.dto.BillResponseDTO;
-import org.ust.project.dto.ConsultationRequestDTO;
-import org.ust.project.dto.ConsultationResponseDTO;
-import org.ust.project.dto.DoctorResponseDTO;
-import org.ust.project.dto.PatientResponseDTO;
-import org.ust.project.dto.PrescriptionResponseDTO;
-
 import org.ust.project.exception.AppointmentNotFoundException;
 import org.ust.project.exception.ConsultationNotFoundException;
 import org.ust.project.model.*;
 import org.ust.project.repo.AppointmentRepository;
 import org.ust.project.repo.ConsultationRepository;
-
 
 @Service
 @Transactional
@@ -44,7 +31,7 @@ public class ConsultationService {
         Appointment appointment = appointmentRepository.findById(dto.getAppointmentId())
                 .orElseThrow(() -> new AppointmentNotFoundException(dto.getAppointmentId()));
 
-        // 🔹 Update appointment status when consultation starts
+        // Update appointment status to IN_PROGRESS when consultation starts
         appointment.setStatus("IN_PROGRESS");
 
         Consultation consultation = new Consultation();
@@ -53,7 +40,7 @@ public class ConsultationService {
         consultation.setReasonForVisit(dto.getReasonForVisit());
         consultation.setNotes(dto.getNotes());
 
-        // 🔹 Maintain bidirectional mapping
+        // Maintain bidirectional mapping
         appointment.setConsultation(consultation);
 
         Consultation saved = consultationRepository.save(consultation);
@@ -61,21 +48,8 @@ public class ConsultationService {
         return toResponseDTO(saved);
     }
 
-    /* ================= COMPLETE CONSULTATION ================= */
-    public ConsultationResponseDTO completeConsultation(Long consultationId) {
-
-        Consultation consultation = consultationRepository.findById(consultationId)
-                .orElseThrow(() -> new ConsultationNotFoundException(consultationId));
-
-        Appointment appointment = consultation.getAppointment();
-        appointment.setStatus("COMPLETED");
-
-        return toResponseDTO(consultation);
-    }
-
     /* ================= GET BY ID ================= */
     public ConsultationResponseDTO getConsultationById(Long id) {
-
         Consultation consultation = consultationRepository.findById(id)
                 .orElseThrow(() -> new ConsultationNotFoundException(id));
 
@@ -84,7 +58,6 @@ public class ConsultationService {
 
     /* ================= GET ALL ================= */
     public List<ConsultationResponseDTO> getAllConsultations() {
-
         return consultationRepository.findAll()
                 .stream()
                 .map(this::toResponseDTO)
@@ -106,11 +79,30 @@ public class ConsultationService {
 
     /* ================= DELETE ================= */
     public void deleteConsultation(Long id) {
-
         Consultation consultation = consultationRepository.findById(id)
                 .orElseThrow(() -> new ConsultationNotFoundException(id));
 
         consultationRepository.delete(consultation);
+    }
+
+    /* ================= START CONSULTATION ================= */
+    public void startConsultation(Long consultationId) {
+        Consultation consultation = consultationRepository.findById(consultationId)
+                .orElseThrow(() -> new RuntimeException("Consultation not found"));
+
+        // Update appointment status to IN_PROGRESS when consultation starts
+        consultation.getAppointment().setStatus("IN_PROGRESS");
+        appointmentRepository.save(consultation.getAppointment()); // Save updated appointment status
+    }
+
+    /* ================= COMPLETE CONSULTATION ================= */
+    public void completeConsultation(Long consultationId) {
+        Consultation consultation = consultationRepository.findById(consultationId)
+                .orElseThrow(() -> new RuntimeException("Consultation not found"));
+
+        // Update appointment status to COMPLETED when consultation is finished
+        consultation.getAppointment().setStatus("COMPLETED");
+        appointmentRepository.save(consultation.getAppointment()); // Save updated appointment status
     }
 
     /* ================= DTO MAPPER ================= */
@@ -142,7 +134,6 @@ public class ConsultationService {
                         appt.getPatient().getBloodGroup()
                 )
         );
-
 
         // Bill mapping - check if bill is null
         BillResponseDTO billDTO = (consultation.getBill() != null) ? new BillResponseDTO(

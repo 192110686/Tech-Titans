@@ -14,6 +14,7 @@ import org.ust.project.exception.AppointmentNotFoundException;
 import org.ust.project.exception.DoctorEntityNotFoundException;
 import org.ust.project.exception.PatientEntityNotFoundException;
 import org.ust.project.model.Appointment;
+import org.ust.project.model.AppointmentStatus;
 import org.ust.project.model.Doctor;
 import org.ust.project.model.Patient;
 import org.ust.project.repo.AppointmentRepository;
@@ -182,6 +183,30 @@ boolean alreadyBooked = appointmentRepository
 
         return "Appointment booked successfully!";
     }
+
+    // Update status of the appointment (e.g., when consultation starts or completes)
+   public void updateAppointmentStatus(Long appointmentId, AppointmentStatus status) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        // Convert the AppointmentStatus enum to String before setting
+        appointment.setStatus(status.toString()); // Convert enum to string
+
+        appointmentRepository.save(appointment);
+    }
+
+    // Reschedule an appointment by changing the appointment date/time and status
+     public void rescheduleAppointment(Long appointmentId, LocalDateTime newDateTime) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        // Check if the new time is available (we'll add the availability check here)
+        appointment.setAppointmentDateTime(newDateTime);
+        appointment.setStatus(org.ust.project.model.AppointmentStatus.RESCHEDULED.toString()); // Set status to RESCHEDULED
+
+        appointmentRepository.save(appointment);
+    }
+
 
     /* ================= DTO MAPPER ================= */
     private AppointmentResponseDTO toResponseDTO(Appointment appointment) {
