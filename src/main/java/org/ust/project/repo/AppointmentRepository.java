@@ -12,12 +12,7 @@ import java.time.LocalDateTime;
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
     List<Appointment> findByDoctorId(Long doctorId);
     List<Appointment> findByPatientId(Long patientId);
-    List<Appointment> findByAppointmentDate(LocalDate date);
-    boolean existsByDoctorIdAndAppointmentDateAndTimeSlot(
-    	    Long doctorId,
-    	    LocalDateTime appointmentDate,
-    	    String timeSlot
-    	);
+  
    // Query to check if doctor is available at a specific time
     List<Appointment> findByDoctorAndAppointmentDateTime(Doctor doctor, LocalDateTime appointmentDateTime);
 
