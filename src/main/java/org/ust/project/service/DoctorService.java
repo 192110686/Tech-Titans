@@ -104,6 +104,38 @@ public class DoctorService {
 
         doctorRepository.delete(doctor);
     }
+    
+    public List<LocalDateTime> getAvailableSlots(Long doctorId, LocalDateTime startTime, LocalDateTime endTime) {
+        // Get the doctor by ID
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        // Get existing appointments for the doctor during the specified time range
+        List<Appointment> existingAppointments = appointmentRepository
+                .findByDoctorAndAppointmentDateTimeBetween(doctor, startTime, endTime);
+
+        List<LocalDateTime> availableSlots = new ArrayList<>();
+
+        // Assuming the doctor works from 9 AM to 5 PM, and each slot is 30 minutes
+        LocalDateTime slot = startTime;
+        
+        // Check availability slot by slot, and add to the available slots list
+        while (slot.isBefore(endTime)) {
+            // Check if the slot is available (not already booked)
+            final LocalDateTime currentSlot = slot;
+            boolean isAvailable = existingAppointments.stream()
+                    .noneMatch(appointment -> appointment.getAppointmentDateTime().equals(currentSlot));
+            
+            if (isAvailable) {
+                availableSlots.add(slot);
+            }
+            
+            // Increment slot by 30 minutes
+            slot = slot.plusMinutes(30);
+        }
+
+        return availableSlots;
+    }
 
     /* ================= DTO ================= */
     private DoctorResponseDTO toResponseDTO(Doctor doctor) {
