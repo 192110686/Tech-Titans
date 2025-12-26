@@ -110,8 +110,8 @@ public class ConsultationService {
         AppointmentResponseDTO appointmentDTO = appt == null ? null : new AppointmentResponseDTO(
                 appt.getId(),
                 appt.getAppointmentDateTime(),
-                appt.getReasonForVisit(),
                 appt.getStatus(),
+                appt.getReasonForVisit(),
                 new DoctorResponseDTO(
                         appt.getDoctor().getId(),
                         appt.getDoctor().getFirstName(),

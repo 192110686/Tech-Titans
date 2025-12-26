@@ -107,8 +107,8 @@ public class BillService {
                         new AppointmentResponseDTO(
                                 appointment.getId(),
                                 appointment.getAppointmentDateTime(),
-                                appointment.getReasonForVisit(),
                                 appointment.getStatus(),
+                                appointment.getReasonForVisit(),
                                 new DoctorResponseDTO(
                                         appointment.getDoctor().getId(),
                                         appointment.getDoctor().getFirstName(),
