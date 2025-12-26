@@ -202,7 +202,7 @@ public class AppointmentService {
         appointmentRepository.save(appointment);
     }
 
-    /* ================= DTO MAPPER ================= */
+    /* ================= DTO MAPPER ================= */ 
     private AppointmentResponseDTO toResponseDTO(Appointment appointment) {
         return new AppointmentResponseDTO(
                 appointment.getId(),
