@@ -27,9 +27,12 @@ public class PaymentService {
 
         Bill bill = billRepository.findById(dto.getBillId())
                 .orElseThrow(() -> new BillNotFoundException(dto.getBillId()));
+
                 Consultation consultation1=bill.getConsultation();
                 Appointment appointment1 = consultation1.getAppointment();
                 appointment1.setStatus("COMPLETED");
+
+        
 
         Payment payment = new Payment();
         payment.setPaymentDate(dto.getPaymentDate());
@@ -200,8 +203,7 @@ public class PaymentService {
                                         )
                                 ),
                                 null,   // Avoid circular reference (we don't need to send bill back)
-                                null,   // Prescription (optional, and may not be needed in payment response)
-                                consultation.getConsultationStatus()
+                                null // Prescription (optional, and may not be needed in payment response)
                         )
                 )
         );

@@ -10,7 +10,6 @@ import org.ust.project.dto.InventoryItemRequestDTO;
 import org.ust.project.dto.InventoryItemResponseDTO;
 import org.ust.project.exception.InventoryItemNotFoundException;
 import org.ust.project.model.InventoryItem;
-import org.ust.project.model.Prescription;
 import org.ust.project.repo.InventoryItemRepository;
 
 @Service

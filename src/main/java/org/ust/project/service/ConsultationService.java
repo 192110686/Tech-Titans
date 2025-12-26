@@ -148,8 +148,7 @@ public class ConsultationService {
                 consultation.getNotes(),
                 appointmentDTO,
                 billDTO,
-                null, // Do not include prescription in this DTO for simplicity
-                consultation.getConsultationStatus()
+                null // Do not include prescription in this DTO for simplicity
         );
     }
 }

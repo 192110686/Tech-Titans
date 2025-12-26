@@ -3,7 +3,6 @@ package org.ust.project.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.ust.project.dto.InventoryItemResponseDTO;
@@ -11,14 +10,13 @@ import org.ust.project.dto.PrescriptionRequestDTO;
 import org.ust.project.dto.PrescriptionResponseDTO;
 import org.ust.project.exception.ConsultationNotFoundException;
 import org.ust.project.exception.InventoryItemNotFoundException;
-import org.ust.project.exception.PartialStockFulfilledException;
 import org.ust.project.exception.PrescriptionNotFoundException;
 import org.ust.project.model.Consultation;
 import org.ust.project.model.InventoryItem;
 import org.ust.project.model.Prescription;
 import org.ust.project.repo.ConsultationRepository;
-import org.ust.project.repo.PrescriptionRepository;
 import org.ust.project.repo.InventoryItemRepository;
+import org.ust.project.repo.PrescriptionRepository;
 
 @Service
 @Transactional
@@ -27,8 +25,7 @@ public class PrescriptionService {
     private final PrescriptionRepository prescriptionRepository;
     private final ConsultationRepository consultationRepository;
     private final InventoryItemRepository inventoryItemRepository;
-
-    @Autowired
+    
     public PrescriptionService(
             PrescriptionRepository prescriptionRepository,
             ConsultationRepository consultationRepository,
@@ -104,56 +101,6 @@ public class PrescriptionService {
         prescription.setPrice(totalPrice);
         prescriptionRepository.save(prescription);
     }
-
-    
-    private void updateInventoryStockAndCalculateTotalPrice(Prescription prescription) {
-
-        // If no inventory items are attached, KEEP the manually-entered price
-        if (prescription.getInventoryItems() == null ||
-            prescription.getInventoryItems().isEmpty()) {
-            return;
-        }
-
-        double totalPrice = 0.0;
-
-        for (InventoryItem item : prescription.getInventoryItems()) {
-
-            InventoryItem stockItem = inventoryItemRepository.findById(item.getId())
-                    .orElseThrow(() -> new InventoryItemNotFoundException(item.getId()));
-
-            double prescribedQty = item.getQuantity();
-            double availableQty = stockItem.getQuantity();
-
-            if (availableQty <= 0) {
-                throw new PartialStockFulfilledException("No stock available for " + item.getItemName());
-            }
-
-            // 🔹 Partial fulfillment
-            if (prescribedQty > availableQty) {
-
-                item.setQuantity(availableQty);   // bill only available qty
-                stockItem.setQuantity(0.0);
-                totalPrice += stockItem.getUnitPrice() * availableQty;
-
-                inventoryItemRepository.save(stockItem);
-
-                throw new PartialStockFulfilledException(
-                        "Only " + availableQty + " units of " + item.getItemName() + " available. Billed partially."
-                );
-            }
-
-            // Full fulfillment
-            stockItem.setQuantity(availableQty - prescribedQty);
-            inventoryItemRepository.save(stockItem);
-
-            totalPrice += stockItem.getUnitPrice() * prescribedQty;
-        }
-
-        // overwrite price ONLY when inventory billing is applied
-        prescription.setPrice(totalPrice);
-        prescriptionRepository.save(prescription);
-    }
-
 
     /* ================= GET BY ID ================= */
     public PrescriptionResponseDTO getPrescriptionById(Long id) {

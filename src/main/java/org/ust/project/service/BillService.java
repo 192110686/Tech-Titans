@@ -17,7 +17,6 @@ import org.ust.project.exception.ConsultationNotFoundException;
 import org.ust.project.model.Appointment;
 import org.ust.project.model.Bill;
 import org.ust.project.model.Consultation;
-import org.ust.project.model.Prescription;
 import org.ust.project.repo.BillRepository;
 import org.ust.project.repo.ConsultationRepository;
 
@@ -56,18 +55,6 @@ public class BillService {
         Bill savedBill = billRepository.save(bill);
 
         return toResponseDTO(savedBill);
-    }
-
-    /* ================= CALCULATE PRESCRIPTION AMOUNT ================= */
-    private double calculatePrescriptionAmount(Prescription prescription) {
-        double prescriptionAmount = 0.0;
-
-        // Sum up the cost of all inventory items in the prescription
-        for (var item : prescription.getInventoryItems()) {
-            prescriptionAmount += item.getUnitPrice() * item.getQuantity();
-        }
-
-        return prescriptionAmount;
     }
 
     /* ================= GET BILL BY ID ================= */
@@ -128,8 +115,7 @@ public class BillService {
                                 )
                         ),
                         null,   // bill (avoid circular ref)
-                        null,    // prescription (optional)
-                        consultation.getConsultationStatus()
+                        null   // prescription (optional)
                 )
         );
     }

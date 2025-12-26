@@ -27,5 +27,4 @@ public class ConsultationResponseDTO {
     private BillResponseDTO bill;  // Ensure bill is present
     private PrescriptionResponseDTO prescription;  // Ensure prescription is present
 
-    private String consultationStatus; // COMPLETED / CANCELLED
 }

@@ -1,7 +1,5 @@
 package org.ust.project.model;
 
-import java.time.LocalDate;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Entity;
