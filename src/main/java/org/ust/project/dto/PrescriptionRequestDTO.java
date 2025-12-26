@@ -3,8 +3,6 @@ package org.ust.project.dto;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.ust.project.model.InventoryItem;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

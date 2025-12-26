@@ -1,6 +1,5 @@
 package org.ust.project.service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,11 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.ust.project.dto.UserRequestDTO;
 import org.ust.project.dto.UserResponseDTO;
-import org.ust.project.model.Doctor;
-import org.ust.project.model.Patient;
 import org.ust.project.model.User;
-import org.ust.project.repo.DoctorRepository;
-import org.ust.project.repo.PatientRepository;
 import org.ust.project.repo.UserRepository;
 
 @Service
@@ -23,11 +18,6 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private PatientRepository patientRepository;
-
-    @Autowired
-    private DoctorRepository doctorRepository;
 
     /* ================= CREATE USER ================= */
     public UserResponseDTO createUser(UserRequestDTO dto) {

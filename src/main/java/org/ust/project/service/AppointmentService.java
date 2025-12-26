@@ -3,6 +3,7 @@ package org.ust.project.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.ust.project.dto.AppointmentRequestDTO;
@@ -13,7 +14,6 @@ import org.ust.project.exception.AppointmentNotFoundException;
 import org.ust.project.exception.DoctorEntityNotFoundException;
 import org.ust.project.exception.PatientEntityNotFoundException;
 import org.ust.project.model.Appointment;
-import org.ust.project.model.AppointmentStatus;
 import org.ust.project.model.Doctor;
 import org.ust.project.model.Patient;
 import org.ust.project.repo.AppointmentRepository;
@@ -207,8 +207,8 @@ public class AppointmentService {
         return new AppointmentResponseDTO(
                 appointment.getId(),
                 appointment.getAppointmentDateTime(),
-                appointment.getReasonForVisit(),
                 appointment.getStatus(),
+                appointment.getReasonForVisit(),
                 new DoctorResponseDTO(
                         appointment.getDoctor().getId(),
                         appointment.getDoctor().getFirstName(),
