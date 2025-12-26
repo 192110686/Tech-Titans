@@ -36,6 +36,7 @@ public class Bill {
     private Double totalAmount;
     private String paymentStatus;
     private LocalDate dueDate;
+    private Double amountPaid;
 
     // Relationship: One bill can have one payment
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
