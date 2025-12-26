@@ -3,6 +3,7 @@ package org.ust.project.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.ust.project.dto.InventoryItemResponseDTO;
@@ -16,8 +17,9 @@ import org.ust.project.model.Consultation;
 import org.ust.project.model.InventoryItem;
 import org.ust.project.model.Prescription;
 import org.ust.project.repo.ConsultationRepository;
-import org.ust.project.repo.InventoryItemRepository;
 import org.ust.project.repo.PrescriptionRepository;
+import org.ust.project.repo.InventoryItemRepository;
+
 @Service
 @Transactional
 public class PrescriptionService {
@@ -26,6 +28,7 @@ public class PrescriptionService {
     private final ConsultationRepository consultationRepository;
     private final InventoryItemRepository inventoryItemRepository;
 
+    @Autowired
     public PrescriptionService(
             PrescriptionRepository prescriptionRepository,
             ConsultationRepository consultationRepository,
@@ -38,9 +41,11 @@ public class PrescriptionService {
     /* ================= CREATE ================= */
     public PrescriptionResponseDTO createPrescription(PrescriptionRequestDTO dto) {
 
+        // Fetch Consultation
         Consultation consultation = consultationRepository.findById(dto.getConsultationId())
                 .orElseThrow(() -> new ConsultationNotFoundException(dto.getConsultationId()));
 
+        // Create a new Prescription
         Prescription prescription = new Prescription();
         prescription.setMedicationName(dto.getMedicationName());
         prescription.setDosageMg(dto.getDosageMg());
@@ -60,6 +65,11 @@ public class PrescriptionService {
             prescription.setInventoryItems(items);
         }
 
+        // Link prescription with inventory items
+        List<InventoryItem> inventoryItems = inventoryItemRepository.findByItemName(dto.getMedicationName());
+        prescription.setInventoryItems(inventoryItems);
+
+        // Save the Prescription
         Prescription saved = prescriptionRepository.save(prescription);
 
         consultation.setPrescription(saved);
@@ -115,9 +125,7 @@ public class PrescriptionService {
             double availableQty = stockItem.getQuantity();
 
             if (availableQty <= 0) {
-                throw new PartialStockFulfilledException(
-                        "No stock available for " + item.getItemName()
-                );
+                throw new PartialStockFulfilledException("No stock available for " + item.getItemName());
             }
 
             // 🔹 Partial fulfillment
@@ -130,12 +138,11 @@ public class PrescriptionService {
                 inventoryItemRepository.save(stockItem);
 
                 throw new PartialStockFulfilledException(
-                        "Only " + availableQty + " units of "
-                        + item.getItemName() + " available. Billed partially."
+                        "Only " + availableQty + " units of " + item.getItemName() + " available. Billed partially."
                 );
             }
 
-            // 🔹 Full fulfillment
+            // Full fulfillment
             stockItem.setQuantity(availableQty - prescribedQty);
             inventoryItemRepository.save(stockItem);
 
@@ -150,16 +157,13 @@ public class PrescriptionService {
 
     /* ================= GET BY ID ================= */
     public PrescriptionResponseDTO getPrescriptionById(Long id) {
-
         Prescription prescription = prescriptionRepository.findById(id)
                 .orElseThrow(() -> new PrescriptionNotFoundException(id));
-
         return toResponseDTO(prescription);
     }
 
     /* ================= GET ALL ================= */
     public List<PrescriptionResponseDTO> getAllPrescriptions() {
-
         return prescriptionRepository.findAll()
                 .stream()
                 .map(this::toResponseDTO)
@@ -186,18 +190,15 @@ public class PrescriptionService {
 
     /* ================= DELETE ================= */
     public void deletePrescription(Long id) {
-
         Prescription prescription = prescriptionRepository.findById(id)
                 .orElseThrow(() -> new PrescriptionNotFoundException(id));
-
         prescriptionRepository.delete(prescription);
     }
 
     /* ================= DTO MAPPER ================= */
     private PrescriptionResponseDTO toResponseDTO(Prescription prescription) {
 
-        List<InventoryItemResponseDTO> items =
-            prescription.getInventoryItems() == null
+        List<InventoryItemResponseDTO> items = prescription.getInventoryItems() == null
                 ? List.of()
                 : prescription.getInventoryItems()
                     .stream()

@@ -1,0 +1,103 @@
+USER
+{
+  "username": "dr.anita",
+  "password": "password123",
+  "role": "DOCTOR"
+}
+DOCTOR
+{
+  "firstName": "Anita",
+  "lastName": "Menon",
+  "specialization": "General Medicine",
+  "contactNumber": 9876543211,
+  "email": "anita@hospital.com",
+  "licenseNumber": "MED12345",
+  "availableSchedule": [
+    "2025-01-20T10:00:00",
+    "2025-01-20T10:30:00",
+    "2025-01-20T11:00:00"
+  ],
+  "userId": 1
+}
+
+USER
+{
+  "username": "rahul",
+  "password": "password123",
+  "role": "PATIENT"
+}
+
+PATIENTS
+
+{
+  "firstName": "Rahul",
+  "lastName": "Sharma",
+  "dateOfBirth": "1998-05-10",
+  "gender": "MALE",
+  "phoneNumber": 9876543210,
+  "email": "rahul@gmail.com",
+  "bloodGroup": "O+",
+  "address": "Kochi, Kerala",
+  "userId" : 2,
+}
+APPOINTMENTS
+
+{
+  "doctorId": 1,
+  "patientId": 1,
+  "appointmentDateTime": "2025-01-20T10:00:00",
+  "reasonForVisit": "High fever"
+}
+
+CONSULTATIONS
+{
+  "appointmentId": 1,
+  "consultationDate": "2025-01-20",
+  "reasonForVisit": "High fever",
+  "notes": "Patient has fever for 3 days"
+}
+
+INVENTORY-ITEMS
+{
+  "itemName": "Paracetamol",
+  "category": "Medicine",
+  "unitPrice": 50.0,
+  "quantity": 100,
+  "supplier": "HealthCare Suppliers",
+  "description": "Pain relief medication"
+}
+
+
+PRESCRIPTIONS
+{
+  "consultationId": 1,
+  "medicationName": "Paracetamol",
+  "dosageMg": 500,
+  "price": 50,
+  "frequency": 3,
+  "startDate": "2025-01-20",
+  "endDate": "2025-01-23",
+  "inventoryItems": [
+    {
+      "id": 1,
+      "quantity": 3
+    }
+  ]
+}
+
+BILLS(/api/bills/1)
+{
+  "issueDate": "2025-01-20",
+  "totalAmount": 150,
+  "dueDate": "2025-01-25",
+  "consultationId": 1
+}
+
+PAYMENT
+{
+  "billId": 1,
+  "paymentDate": "2025-01-20",
+  "amountPaid": 150,
+  "paymentMethod": "UPI"
+}
+
