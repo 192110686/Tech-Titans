@@ -57,20 +57,33 @@ public class PaymentService {
         }
 
         // Update the bill status based on payment amount
+     // Update the bill status based on accumulated payment amount
         double totalAmount = bill.getTotalAmount();
-        double amountPaid = savedPayment.getAmountPaid();
+       
+        double existingAmountPaid =
+                bill.getAmountPaid() == null ? 0.0 : bill.getAmountPaid();
+// Existing amount already paid
+        double amountPaid = savedPayment.getAmountPaid(); // New payment amount
 
-        if (amountPaid >= totalAmount) {
+        // Accumulate the total paid amount
+        double newAmountPaid = existingAmountPaid + amountPaid;
+
+        if (newAmountPaid >= totalAmount) {
             bill.setPaymentStatus("PAID"); // Full payment
-        } else {
+        } else if (newAmountPaid > 0) {
             bill.setPaymentStatus("PARTIALLY PAID"); // Partial payment
         }
 
+        // Update the total amount paid in the bill
+        bill.setAmountPaid(newAmountPaid);
+
+        // Save the updated bill
         billRepository.save(bill);
 
+        // Return the response DTO (e.g., Payment + Consultation + Appointment)
         return toResponseDTO(savedPayment, consultation, appointment);
-    }
 
+    }
     /* ================= GET BY ID ================= */
     public PaymentResponseDTO getPaymentById(Long id) {
         Payment payment = paymentRepository.findById(id)

@@ -18,7 +18,5 @@ public class UserRequestDTO {
     private String password;
     
     private String role;
-    
-    private Long patientId;
 
 }

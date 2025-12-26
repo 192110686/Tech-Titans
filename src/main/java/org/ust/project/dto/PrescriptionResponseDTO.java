@@ -31,7 +31,6 @@ public class PrescriptionResponseDTO {
     private LocalDate startDate;
 
     private LocalDate endDate;
-  // Nested DTO for appointment details
 
     private List<InventoryItemResponseDTO> inventoryItems;
 
