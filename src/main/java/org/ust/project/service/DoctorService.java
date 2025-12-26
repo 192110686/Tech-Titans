@@ -86,33 +86,34 @@ public class DoctorService {
         doctorRepository.delete(doctor);
     }
 
-    public List<LocalDateTime> getAvailableSlots(Long doctorId, LocalDateTime startTime, LocalDateTime endTime) {
-        // Get the doctor by ID
-        Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+   // In DoctorService.java
+public List<LocalDateTime> getAvailableSlots(Long doctorId, LocalDateTime startTime, LocalDateTime endTime) {
+    Doctor doctor = doctorRepository.findById(doctorId)
+            .orElseThrow(() -> new RuntimeException("Doctor not found"));
 
-        // Get existing appointments for the doctor during the specified time range
-        List<Appointment> existingAppointments = appointmentRepository
-                .findByDoctorAndAppointmentDateTimeBetween(doctor, startTime, endTime);
+    // Get existing appointments for the doctor during the specified time range
+    List<Appointment> existingAppointments = appointmentRepository
+            .findByDoctorAndAppointmentDateTimeBetween(doctor, startTime, endTime);
 
-        List<LocalDateTime> availableSlots = new ArrayList<>();
+    List<LocalDateTime> availableSlots = new ArrayList<>();
 
-        // Check availability slot by slot
-        LocalDateTime slot = startTime;
-        while (slot.isBefore(endTime)) {
-            final LocalDateTime currentSlot = slot;
-            boolean isAvailable = existingAppointments.stream()
-                    .noneMatch(appointment -> appointment.getAppointmentDateTime().equals(currentSlot));
+    // Check availability slot by slot
+    LocalDateTime slot = startTime;
+    while (slot.isBefore(endTime)) {
+        final LocalDateTime currentSlot = slot;
+        boolean isAvailable = existingAppointments.stream()
+                .noneMatch(appointment -> appointment.getAppointmentDateTime().equals(currentSlot));
 
-            if (isAvailable) {
-                availableSlots.add(slot);
-            }
-
-            slot = slot.plusMinutes(30);
+        if (isAvailable) {
+            availableSlots.add(slot);
         }
 
-        return availableSlots;
+        slot = slot.plusMinutes(30); // Assuming the slot duration is 30 minutes
     }
+
+    return availableSlots;
+}
+
 
     private DoctorResponseDTO toResponseDTO(Doctor doctor) {
         return new DoctorResponseDTO(

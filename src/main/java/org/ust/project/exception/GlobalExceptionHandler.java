@@ -37,4 +37,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleMedicalRecordNotFound(ConsultationNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+
+    @ExceptionHandler(TimeSlotException.class)
+    public ResponseEntity<String> timenotfondExcep(TimeSlotException e)
+    {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
 }

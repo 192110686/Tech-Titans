@@ -13,6 +13,7 @@ import org.ust.project.dto.PatientResponseDTO;
 import org.ust.project.exception.AppointmentNotFoundException;
 import org.ust.project.exception.DoctorEntityNotFoundException;
 import org.ust.project.exception.PatientEntityNotFoundException;
+import org.ust.project.exception.TimeSlotException;
 import org.ust.project.model.Appointment;
 import org.ust.project.model.Doctor;
 import org.ust.project.model.Patient;
@@ -58,8 +59,15 @@ public class AppointmentService {
                         dto.getAppointmentDateTime()
                 );
 
+        List<LocalDateTime> lists =doctor.getAvailableSchedule();
+        for(LocalDateTime dd : lists){
+        if(dto.getAppointmentDateTime()!= dd)
+        {
+                throw new TimeSlotException("Doctor is not available at the requested Time slot " + dd + "\n Doctor's Available slots are : " + lists.toString());
+        }
+        }
         if (alreadyBooked) {
-            throw new IllegalStateException("Doctor is already booked for this time slot");
+            throw new TimeSlotException("Doctor is already booked for this time slot");
         }
 
         // Create a new appointment and set the necessary fields
@@ -125,56 +133,69 @@ public class AppointmentService {
 
     /* ================= Doctor Availability ================= */
     // Method to check if the doctor is available at the requested time
-    public boolean checkDoctorAvailability(Long doctorId, LocalDateTime requestedTime) {
-        // Fetch the Doctor entity
-        Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new DoctorEntityNotFoundException(doctorId));
+   // In AppointmentService.java
+public boolean checkDoctorAvailability(Long doctorId, LocalDateTime requestedTime) {
+    // Fetch the Doctor entity
+    Doctor doctor = doctorRepository.findById(doctorId)
+            .orElseThrow(() -> new DoctorEntityNotFoundException(doctorId));
 
-        // Check if the doctor already has an appointment at the requested time
-        List<Appointment> existingAppointments = appointmentRepository
-                .findByDoctorAndAppointmentDateTime(doctor, requestedTime);
+    // Check if the requested time exists in the doctor's available schedule
+    List<LocalDateTime> availableSchedule = doctor.getAvailableSchedule();
 
-        // If no appointments, doctor is available
-        return existingAppointments.isEmpty();
-    }
+    // If the requested time is in the doctor's available schedule, return true
+    return availableSchedule.contains(requestedTime);
+}
+
 
     /* ============================ Book the Appointment if Doctor is Available =================== */
-    public String bookAppointment(AppointmentRequestDTO appointmentRequest) {
-        // Check if the doctor is available
-        boolean isAvailable = checkDoctorAvailability(appointmentRequest.getDoctorId(), appointmentRequest.getAppointmentDateTime());
+    // In AppointmentService.java
+// In AppointmentService.java
+public String bookAppointment(AppointmentRequestDTO appointmentRequest) {
+    // Fetch Doctor by ID
+    Doctor doctor = doctorRepository.findById(appointmentRequest.getDoctorId())
+            .orElseThrow(() -> new DoctorEntityNotFoundException(appointmentRequest.getDoctorId()));
 
-        if (!isAvailable) {
-            // If doctor is not available, get available time slots
-            List<LocalDateTime> availableSlots = doctorService.getAvailableSlots(
-                    appointmentRequest.getDoctorId(),
-                    appointmentRequest.getAppointmentDateTime().minusHours(1),
-                    appointmentRequest.getAppointmentDateTime().plusHours(1)
-            );
+    // Check if the doctor is available for the requested time
+    boolean isAvailable = checkDoctorAvailability(appointmentRequest.getDoctorId(), appointmentRequest.getAppointmentDateTime());
 
-            // Return available slots to the patient
-            return "Doctor is not available at the requested time. Available slots: " + availableSlots.toString();
-        }
+    if (!isAvailable) {
+        // If doctor is not available, return available slots
+        List<LocalDateTime> availableSlots = doctorService.getAvailableSlots(
+                appointmentRequest.getDoctorId(),
+                appointmentRequest.getAppointmentDateTime().minusHours(1),
+                appointmentRequest.getAppointmentDateTime().plusHours(1)
+        );
 
-        // Proceed to book the appointment
-        Appointment appointment = new Appointment();
-
-        // Fetch Patient and Doctor from DB
-        Patient patient = patientRepository.findById(appointmentRequest.getPatientId())
-                .orElseThrow(() -> new PatientEntityNotFoundException(appointmentRequest.getPatientId()));
-
-        Doctor doctor = doctorRepository.findById(appointmentRequest.getDoctorId())
-                .orElseThrow(() -> new DoctorEntityNotFoundException(appointmentRequest.getDoctorId()));
-
-        // Set patient, doctor, and other fields
-        appointment.setPatient(patient);
-        appointment.setDoctor(doctor);
-        appointment.setAppointmentDateTime(appointmentRequest.getAppointmentDateTime()); // Set time
-        appointment.setStatus("SCHEDULED"); // Set status to SCHEDULED
-
-        appointmentRepository.save(appointment);
-
-        return "Appointment booked successfully!";
+        return "Doctor is not available at the requested time. Available slots: " + availableSlots.toString();
     }
+
+    // Check if the doctor is already booked for the requested time
+    boolean alreadyBooked = appointmentRepository
+            .existsByDoctorIdAndAppointmentDateTime(doctor.getId(), appointmentRequest.getAppointmentDateTime());
+
+    if (alreadyBooked) {
+        throw new IllegalStateException("Doctor is already booked for this time slot");
+    }
+
+    // Proceed to book the appointment
+    Appointment appointment = new Appointment();
+
+    // Fetch Patient from DB
+    Patient patient = patientRepository.findById(appointmentRequest.getPatientId())
+            .orElseThrow(() -> new PatientEntityNotFoundException(appointmentRequest.getPatientId()));
+
+    // Set patient, doctor, and other fields
+    appointment.setPatient(patient);
+    appointment.setDoctor(doctor);
+    appointment.setAppointmentDateTime(appointmentRequest.getAppointmentDateTime()); // Set time
+    appointment.setReasonForVisit(appointmentRequest.getReasonForVisit());
+    appointment.setStatus("SCHEDULED");
+
+    appointmentRepository.save(appointment);
+
+    return "Appointment booked successfully!";
+}
+
 
     // Update the appointment status
     public void updateAppointmentStatus(Long appointmentId, String status) {
@@ -192,15 +213,35 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        // Check availability of the new time (you can implement availability check here as well)
-        appointment.setAppointmentDateTime(newDateTime);
+        // Check if doctor is available at the new time
+        boolean isAvailable = checkDoctorAvailability(appointment.getDoctor().getId(), newDateTime);
+        if (!isAvailable) {
+            throw new RuntimeException("Doctor is not available at the requested time");
+        }
 
-        appointment.setStatus("RESCHEDULED");
- // Set status to RESCHEDULED
+        appointment.setAppointmentDateTime(newDateTime);  // Update the new date/time
+        appointment.setStatus("RESCHEDULED");  // Update status to RESCHEDULED
 
-
-        appointmentRepository.save(appointment);
+        appointmentRepository.save(appointment);  // Save the updated appointment
     }
+
+ // Set status to RESCHEDULED
+ public void cancelAppointment(Long appointmentId) {
+    // Fetch the appointment by its ID
+    Appointment appointment = appointmentRepository.findById(appointmentId)
+            .orElseThrow(() -> new AppointmentNotFoundException(appointmentId));
+
+    // Update the appointment's status to "CANCELLED"
+    appointment.setStatus("CANCELLED");
+
+    // Save the updated appointment
+    appointmentRepository.save(appointment);
+}
+
+
+
+
+        
 
     /* ================= DTO MAPPER ================= */
     private AppointmentResponseDTO toResponseDTO(Appointment appointment) {
