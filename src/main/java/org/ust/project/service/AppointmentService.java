@@ -59,13 +59,7 @@ public class AppointmentService {
                         dto.getAppointmentDateTime()
                 );
 
-        List<LocalDateTime> lists =doctor.getAvailableSchedule();
-        for(LocalDateTime dd : lists){
-        if(dto.getAppointmentDateTime()!= dd)
-        {
-            throw new TimeSlotException("Doctor is not available at the requested Time slot " + dd + "\n Doctor's Available slots are : " + lists.toString());
-        }
-        }
+        
         if (alreadyBooked) {
             throw new TimeSlotException("Doctor is already booked for this time slot");
         }
@@ -79,7 +73,24 @@ public class AppointmentService {
         appointment.setStatus("SCHEDULED"); // Default status as String
 
         // Save the appointment and return the response
-        return toResponseDTO(appointmentRepository.save(appointment));
+       
+        
+        List<LocalDateTime> lists = doctor.getAvailableSchedule();
+        boolean isAvailable = false;
+        for (LocalDateTime dd : lists) {
+            if (dto.getAppointmentDateTime() != null && dto.getAppointmentDateTime().equals(dd)) {
+                isAvailable = true;
+                break; // Exit the loop as soon as a match is found
+            }
+        }
+
+        // If the appointment time is not in the available slots, throw an exception
+        if (!isAvailable) {
+            throw new TimeSlotException("Doctor is not available at the requested time slot " + dto.getAppointmentDateTime() +
+                    "\n Doctor's available slots are: " + lists.toString());
+        }
+        AppointmentResponseDTO ap = toResponseDTO(appointmentRepository.save(appointment));
+        return ap;
     }
 
     /* ================= GET BY ID ================= */
