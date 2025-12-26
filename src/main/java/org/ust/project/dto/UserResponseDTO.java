@@ -19,5 +19,5 @@ public class UserResponseDTO {
 
     private String role;
 
-
+    
 }

@@ -40,7 +40,10 @@ public class PaymentService {
 
         Payment savedPayment = paymentRepository.save(payment);
 
-
+        if (bill.getConsultation() == null) {
+            throw new IllegalStateException("Payment cannot be created because consultation is not linked to bill");
+        }
+        
         // Update bill status to PAID
 
         bill.setPaymentStatus("PAID");

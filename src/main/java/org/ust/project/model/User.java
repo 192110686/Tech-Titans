@@ -34,7 +34,6 @@ public class User {
     private String username;
     private String password;
     private String role;
-    private LocalDate registrationDate;
 
     // Relationship: One user is linked to one patient
     @OneToOne(fetch = FetchType.LAZY)

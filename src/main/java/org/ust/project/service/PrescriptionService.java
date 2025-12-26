@@ -44,33 +44,70 @@ public class PrescriptionService {
         Prescription prescription = new Prescription();
         prescription.setMedicationName(dto.getMedicationName());
         prescription.setDosageMg(dto.getDosageMg());
-        prescription.setPrice(dto.getPrice());
         prescription.setFrequency(dto.getFrequency());
         prescription.setStartDate(dto.getStartDate());
         prescription.setEndDate(dto.getEndDate());
         prescription.setConsultation(consultation);
+        
+        if (dto.getInventoryItems() != null) {
+            List<InventoryItem> items =
+                    dto.getInventoryItems().stream()
+                            .map(reqItem -> inventoryItemRepository.findById(reqItem.getId())
+                                    .orElseThrow(() ->
+                                            new InventoryItemNotFoundException(reqItem.getId())))
+                            .collect(Collectors.toList());
+
+            prescription.setInventoryItems(items);
+        }
 
         Prescription saved = prescriptionRepository.save(prescription);
 
-        // 🔗 Maintain bidirectional consistency
         consultation.setPrescription(saved);
 
-        // 🔥 Update inventory stock and calculate prescription amount
-        try {
-            updateInventoryStockAndCalculateTotalPrice(saved);
-        } catch (PartialStockFulfilledException ex) {
-            // DO NOT rollback the transaction, as bill and inventory are already updated
-            return toResponseDTO(saved);
-        }
+        // ▶️ Calculate price using new rule
+        calculatePrescriptionPrice(saved);
 
         return toResponseDTO(saved);
     }
 
-    /* ================= INVENTORY UPDATE AND CALCULATE PRESCRIPTION PRICE ================= */
+    private void calculatePrescriptionPrice(Prescription prescription) {
+
+        double totalPrice = 0.0;
+
+        // Number of days between start & end date (inclusive)
+        long days = java.time.temporal.ChronoUnit.DAYS
+                .between(prescription.getStartDate(), prescription.getEndDate()) + 1;
+
+        for (InventoryItem item : prescription.getInventoryItems()) {
+
+            InventoryItem stockItem = inventoryItemRepository.findById(item.getId())
+                    .orElseThrow(() -> new InventoryItemNotFoundException(item.getId()));
+
+            double unitPrice = stockItem.getUnitPrice();
+            double frequencyPerDay = prescription.getFrequency();
+
+            double medicinePrice = unitPrice * frequencyPerDay * days;
+
+            totalPrice += medicinePrice;
+        }
+
+        prescription.setPrice(totalPrice);
+        prescriptionRepository.save(prescription);
+    }
+
+    
     private void updateInventoryStockAndCalculateTotalPrice(Prescription prescription) {
+
+        // If no inventory items are attached, KEEP the manually-entered price
+        if (prescription.getInventoryItems() == null ||
+            prescription.getInventoryItems().isEmpty()) {
+            return;
+        }
+
         double totalPrice = 0.0;
 
         for (InventoryItem item : prescription.getInventoryItems()) {
+
             InventoryItem stockItem = inventoryItemRepository.findById(item.getId())
                     .orElseThrow(() -> new InventoryItemNotFoundException(item.getId()));
 
@@ -83,10 +120,11 @@ public class PrescriptionService {
                 );
             }
 
+            // 🔹 Partial fulfillment
             if (prescribedQty > availableQty) {
-                // 🔹 Partial fulfillment
-                item.setQuantity(availableQty);        // Bill only for available qty
-                stockItem.setQuantity(0.0);               // Inventory becomes zero
+
+                item.setQuantity(availableQty);   // bill only available qty
+                stockItem.setQuantity(0.0);
                 totalPrice += stockItem.getUnitPrice() * availableQty;
 
                 inventoryItemRepository.save(stockItem);
@@ -100,12 +138,15 @@ public class PrescriptionService {
             // 🔹 Full fulfillment
             stockItem.setQuantity(availableQty - prescribedQty);
             inventoryItemRepository.save(stockItem);
-            totalPrice += stockItem.getUnitPrice() * prescribedQty;  // Add the total price for each item
+
+            totalPrice += stockItem.getUnitPrice() * prescribedQty;
         }
 
-        // Set the calculated total price for the prescription
+        // overwrite price ONLY when inventory billing is applied
         prescription.setPrice(totalPrice);
+        prescriptionRepository.save(prescription);
     }
+
 
     /* ================= GET BY ID ================= */
     public PrescriptionResponseDTO getPrescriptionById(Long id) {
@@ -133,7 +174,6 @@ public class PrescriptionService {
 
         prescription.setMedicationName(dto.getMedicationName());
         prescription.setDosageMg(dto.getDosageMg());
-        prescription.setPrice(dto.getPrice());
         prescription.setFrequency(dto.getFrequency());
         prescription.setStartDate(dto.getStartDate());
         prescription.setEndDate(dto.getEndDate());

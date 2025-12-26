@@ -37,11 +37,12 @@ public class BillService {
         Consultation consultation = consultationRepository.findById(consultationId)
                 .orElseThrow(() -> new ConsultationNotFoundException(consultationId));
 
+        
         // Calculate total amount (consultation fee + prescription fee)
         double totalAmount = 300.0; // Fixed consultation fee
 
         if (consultation.getPrescription() != null) {
-            totalAmount += calculatePrescriptionAmount(consultation.getPrescription());
+            totalAmount += consultation.getPrescription().getPrice();
         }
 
         Bill bill = new Bill();
@@ -49,6 +50,7 @@ public class BillService {
         bill.setDueDate(LocalDate.now().plusDays(30));  // Bill due date is 30 days from today
         bill.setTotalAmount(totalAmount);
         bill.setPaymentStatus("UNPAID");
+        consultation.setBill(bill);
         bill.setConsultation(consultation);
 
         Bill savedBill = billRepository.save(bill);

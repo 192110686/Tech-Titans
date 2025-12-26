@@ -1,6 +1,9 @@
 package org.ust.project.dto;
 
 import java.time.LocalDate;
+import java.util.List;
+
+import org.ust.project.model.InventoryItem;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,16 +22,14 @@ public class PrescriptionRequestDTO {
 
     private Double dosageMg;
 
-    private Double price;
-
     private Double frequency;
 
     private LocalDate startDate;
 
     private LocalDate endDate;
 
-    private Long consultationId;  // Linking to the MedicalRecord
+    private Long consultationId;
 
-    
+    private List<InventoryItemIdQuantityDTO> inventoryItems;
 
 }

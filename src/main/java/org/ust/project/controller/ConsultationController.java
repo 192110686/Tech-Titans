@@ -16,15 +16,11 @@ import org.ust.project.dto.ConsultationResponseDTO;
 import org.ust.project.service.ConsultationService;
 
 @RestController
-@RequestMapping("/api/consultations")
+@RequestMapping("/consultations")
 public class ConsultationController {
 
-    private final ConsultationService consultationService;
-
-    @Autowired
-    public ConsultationController(ConsultationService consultationService) {
-        this.consultationService = consultationService;
-    }
+	@Autowired
+    private ConsultationService consultationService;
 
     /* ================= CREATE CONSULTATION ================= */
     @PostMapping

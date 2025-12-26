@@ -101,6 +101,10 @@ public class ConsultationService {
     private ConsultationResponseDTO toResponseDTO(Consultation consultation) {
 
         Appointment appt = consultation.getAppointment();
+        if(appt == null)
+        {
+        	throw new AppointmentNotFoundException(1L);
+        }
 
         // Appointment mapping
         AppointmentResponseDTO appointmentDTO = appt == null ? null : new AppointmentResponseDTO(
