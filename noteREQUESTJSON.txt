@@ -38,7 +38,7 @@ PATIENTS
   "email": "rahul@gmail.com",
   "bloodGroup": "O+",
   "address": "Kochi, Kerala",
-  "userId" : 2,
+  "userId" : 2
 }
 APPOINTMENTS
 
@@ -56,6 +56,14 @@ CONSULTATIONS
   "reasonForVisit": "High fever",
   "notes": "Patient has fever for 3 days"
 }
+//reschedule
+/{id}/reschedule
+{
+  "newAppointmentDateTime" : "2025-01-20T11:00:00"
+}
+
+//CANCEL
+/{id}/cancel
 
 INVENTORY-ITEMS
 {
@@ -73,7 +81,6 @@ PRESCRIPTIONS
   "consultationId": 1,
   "medicationName": "Paracetamol",
   "dosageMg": 500,
-  "price": 50,
   "frequency": 3,
   "startDate": "2025-01-20",
   "endDate": "2025-01-23",
@@ -89,8 +96,7 @@ BILLS(/api/bills/1)
 {
   "issueDate": "2025-01-20",
   "totalAmount": 150,
-  "dueDate": "2025-01-25",
-  "consultationId": 1
+  "dueDate": "2025-01-25"
 }
 
 PAYMENT
@@ -100,4 +106,5 @@ PAYMENT
   "amountPaid": 150,
   "paymentMethod": "UPI"
 }
+
 
